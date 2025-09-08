@@ -1,0 +1,165 @@
+version: '3.8'
+
+services:
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: cms-nbi-client:test
+    container_name: cms-nbi-test-runner
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./coverage:/app/coverage
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - CMS_USERNAME=test_user
+      - CMS_PASSWORD=test_pass
+      - CMS_CONNECTION__HOST=mock-cms
+      - CMS_CONNECTION__PROTOCOL=http
+      - CMS_CONNECTION__VERIFY_SSL=false
+      - CMS_CONNECTION__NETCONF_PORT=18443
+      - CMS_CONNECTION__REST_PORT=8443
+      - COVERAGE_FILE=/app/coverage/.coverage
+    networks:
+      - test-network
+    depends_on:
+      mock-cms:
+        condition: service_healthy
+    command: >
+      sh -c "
+        pip install pytest pytest-asyncio pytest-cov pytest-mock &&
+        pytest tests/ -v --cov=cmsnbiclient --cov-report=html:/app/coverage/html --cov-report=term
+      "
+
+  # Mock CMS server for testing
+  mock-cms:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    image: cms-nbi-client:mock-server
+    container_name: mock-cms-test
+    expose:
+      - "18443"
+      - "8443"
+    environment:
+      - MOCK_SERVER_PORT=18443
+      - MOCK_REST_PORT=8443
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18443/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # Unit test runner (no external dependencies)
+  unit-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: cms-nbi-client:test
+    container_name: cms-nbi-unit-tests
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./coverage:/app/coverage
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - COVERAGE_FILE=/app/coverage/.coverage.unit
+    networks:
+      - test-network
+    command: >
+      sh -c "
+        pip install pytest pytest-asyncio pytest-cov pytest-mock &&
+        pytest tests/unit/ -v --cov=cmsnbiclient --cov-report=html:/app/coverage/unit-html
+      "
+
+  # Integration test runner
+  integration-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: cms-nbi-client:test
+    container_name: cms-nbi-integration-tests
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./coverage:/app/coverage
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - CMS_USERNAME=test_user
+      - CMS_PASSWORD=test_pass
+      - CMS_CONNECTION__HOST=mock-cms
+      - CMS_CONNECTION__PROTOCOL=http
+      - CMS_CONNECTION__VERIFY_SSL=false
+      - COVERAGE_FILE=/app/coverage/.coverage.integration
+    networks:
+      - test-network
+    depends_on:
+      mock-cms:
+        condition: service_healthy
+    command: >
+      sh -c "
+        pip install pytest pytest-asyncio pytest-cov pytest-mock &&
+        pytest tests/integration/ -v --cov=cmsnbiclient --cov-report=html:/app/coverage/integration-html
+      "
+
+  # Linting and type checking
+  lint:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: cms-nbi-client:dev
+    container_name: cms-nbi-lint
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    command: >
+      sh -c "
+        echo 'Running Black...' &&
+        black --check src/ tests/ &&
+        echo 'Running isort...' &&
+        isort --check-only src/ tests/ &&
+        echo 'Running Flake8...' &&
+        flake8 src/ tests/ &&
+        echo 'Running MyPy...' &&
+        mypy src/
+      "
+
+  # Security scanning
+  security:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: cms-nbi-client:dev
+    container_name: cms-nbi-security
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    command: >
+      sh -c "
+        pip install bandit safety &&
+        echo 'Running Bandit security scan...' &&
+        bandit -r src/ &&
+        echo 'Running Safety dependency check...' &&
+        safety check
+      "
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  coverage:

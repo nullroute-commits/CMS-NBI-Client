@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'cms-nbi-client'
+
+scrape_configs:
+  # Scrape the CMS NBI Client metrics
+  - job_name: 'cms-nbi-client'
+    static_configs:
+      - targets: ['app:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape Redis exporter if available
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Scrape node exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']

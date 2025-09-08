@@ -112,6 +112,7 @@ nav:
       - Installation: guides/installation.md
       - Quick Start: guides/quickstart.md
       - Configuration: guides/configuration.md
+      - Docker Deployment: guides/docker-deployment.md
       - Migration Guide: guides/migration.md
   - User Guide:
       - Basic Usage: guides/basic-usage.md
@@ -137,4 +138,5 @@ nav:
       - Contributing: guides/contributing.md
       - Architecture: guides/architecture.md
       - Testing: guides/testing.md
+      - Docker Development: guides/docker-development.md
       - Changelog: changelog.md

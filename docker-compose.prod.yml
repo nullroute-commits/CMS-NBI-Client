@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # Main application service (production)
+  app:
+    image: cms-nbi-client:${VERSION:-latest}
+    container_name: cms-nbi-client
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app/src
+      - CMS_USERNAME=${CMS_USERNAME}
+      - CMS_PASSWORD=${CMS_PASSWORD}
+      - CMS_CONNECTION__HOST=${CMS_HOST}
+      - CMS_CONNECTION__PROTOCOL=${CMS_PROTOCOL:-https}
+      - CMS_CONNECTION__VERIFY_SSL=${CMS_VERIFY_SSL:-true}
+      - CMS_CONNECTION__NETCONF_PORT=${CMS_NETCONF_PORT:-18443}
+      - CMS_CONNECTION__REST_PORT=${CMS_REST_PORT:-8443}
+      - CMS_CONNECTION__TIMEOUT=${CMS_TIMEOUT:-30}
+      - CMS_PERFORMANCE__CONNECTION_POOL_SIZE=${POOL_SIZE:-200}
+      - CMS_PERFORMANCE__MAX_CONCURRENT_REQUESTS=${MAX_CONCURRENT:-100}
+      - CMS_PERFORMANCE__CACHE_TTL=${CACHE_TTL:-300}
+      - CMS_PERFORMANCE__ENABLE_CIRCUIT_BREAKER=${CIRCUIT_BREAKER:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - REDIS_URL=redis://redis:6379/0
+    networks:
+      - production
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import cmsnbiclient; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: cms-nbi-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - production
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cms-nbi-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - production
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cms-nbi-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - production
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # NGINX reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: cms-nbi-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+    networks:
+      - production
+    depends_on:
+      - grafana
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  production:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  nginx-cache:
+    driver: local
