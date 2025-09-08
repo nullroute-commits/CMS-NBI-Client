@@ -1,0 +1,142 @@
+site_name: CMS-NBI-Client Documentation
+site_description: Modern async Python client for Calix Management System NBI
+site_author: somenetworking
+site_url: https://somenetworking.github.io/CMS-NBI-Client/
+repo_url: https://github.com/somenetworking/CMS-NBI-Client
+repo_name: somenetworking/CMS-NBI-Client
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+plugins:
+  - search:
+      lang: en
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_toc_entry: true
+            show_object_full_path: false
+            show_category_heading: true
+            show_if_no_docstring: true
+            show_signature_annotations: true
+            show_bases: true
+            group_by_category: true
+            heading_level: 2
+            members_order: source
+            separate_signature: true
+            filters: ["!^_"]
+            docstring_section_style: spacy
+            merge_init_into_class: true
+            docstring_style: google
+            
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.mark
+  - pymdownx.critic
+  - pymdownx.keys
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - tables
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/somenetworking
+  version:
+    provider: mike
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: guides/installation.md
+      - Quick Start: guides/quickstart.md
+      - Configuration: guides/configuration.md
+      - Docker Deployment: guides/docker-deployment.md
+      - Migration Guide: guides/migration.md
+  - User Guide:
+      - Basic Usage: guides/basic-usage.md
+      - Async Operations: guides/async-operations.md
+      - Connection Management: guides/connection-management.md
+      - Error Handling: guides/error-handling.md
+      - Security: guides/security.md
+      - Performance Tuning: guides/performance.md
+  - Examples:
+      - E7 Operations: examples/e7-operations.md
+      - REST Operations: examples/rest-operations.md
+      - Concurrent Operations: examples/concurrent.md
+      - Error Recovery: examples/error-recovery.md
+  - API Reference:
+      - Client: api/client.md
+      - Configuration: api/config.md
+      - E7 Module: api/e7.md
+      - REST Module: api/rest.md
+      - Core Components: api/core.md
+      - Security: api/security.md
+      - Exceptions: api/exceptions.md
+  - Developer Guide:
+      - Contributing: guides/contributing.md
+      - Architecture: guides/architecture.md
+      - Testing: guides/testing.md
+      - Docker Development: guides/docker-development.md
+      - Changelog: changelog.md

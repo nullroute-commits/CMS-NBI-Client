@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1.6
+# Mock CMS test server
+# Requires Docker BuildKit (DOCKER_BUILDKIT=1)
+FROM python:3.11-alpine
+
+# Install dependencies
+RUN apk add --no-cache \
+    curl \
+    && pip install --no-cache-dir \
+    aiohttp \
+    lxml \
+    structlog
+
+# Create non-root user
+RUN addgroup -g 1000 -S appuser && \
+    adduser -u 1000 -S appuser -G appuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy test server code
+COPY tests/mock_server.py ./
+
+# Change ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose ports
+EXPOSE 18443 8443
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:18443/health || exit 1
+
+# Run mock server
+CMD ["python", "mock_server.py"]

@@ -1,0 +1,61 @@
+# syntax=docker/dockerfile:1.6
+# Development Dockerfile with all tools
+# Requires Docker BuildKit (DOCKER_BUILDKIT=1)
+FROM python:3.11-alpine
+
+# Install build and development dependencies
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    python3-dev \
+    libxml2-dev \
+    libxslt-dev \
+    git \
+    bash \
+    curl \
+    make \
+    cargo \
+    && pip install --upgrade pip poetry
+
+# Install development tools
+RUN pip install --no-cache-dir \
+    ipython \
+    ipdb \
+    black \
+    isort \
+    flake8 \
+    mypy \
+    pytest \
+    pytest-asyncio \
+    pytest-cov
+
+# Create non-root user with sudo capabilities
+RUN addgroup -g 1000 -S appuser && \
+    adduser -u 1000 -S appuser -G appuser && \
+    echo "appuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/appuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy all files
+COPY . .
+
+# Install all dependencies including dev
+RUN poetry config virtualenvs.create false && \
+    poetry install --with dev --with docs
+
+# Change ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Set environment variables
+ENV PYTHONPATH=/app/src
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Default to bash shell
+CMD ["/bin/bash"]

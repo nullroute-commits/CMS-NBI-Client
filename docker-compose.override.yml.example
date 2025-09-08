@@ -1,0 +1,57 @@
+# Docker Compose Override for Local Development
+# Copy this to docker-compose.override.yml and customize
+
+version: '3.8'
+
+services:
+  app:
+    # Mount additional volumes for development
+    volumes:
+      - ~/.cms-nbi-client:/home/appuser/.cms-nbi-client
+      - ./scripts:/app/scripts
+    
+    # Override environment for local testing
+    environment:
+      - LOG_LEVEL=DEBUG
+      - CMS_CONNECTION__HOST=mock-cms
+      - CMS_CONNECTION__PROTOCOL=http
+      - CMS_CONNECTION__VERIFY_SSL=false
+    
+    # Keep container running for development
+    command: tail -f /dev/null
+    
+    # Expose additional ports if needed
+    ports:
+      - "8888:8888"  # For Jupyter notebooks
+  
+  # Disable services not needed locally
+  prometheus:
+    profiles:
+      - monitoring
+  
+  grafana:
+    profiles:
+      - monitoring
+  
+  # Add development tools
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: cms-nbi-client:jupyter
+    container_name: cms-nbi-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./src:/app/src
+      - ./Examples:/app/Examples
+      - ./notebooks:/app/notebooks
+    environment:
+      - PYTHONPATH=/app/src
+    command: >
+      sh -c "
+        pip install jupyter notebook ipywidgets &&
+        jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+      "
+    networks:
+      - cms-network

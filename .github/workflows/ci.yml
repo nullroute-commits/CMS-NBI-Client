@@ -1,0 +1,198 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: v0.12.0  # Latest stable as of Dec 2024
+    
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+    
+    - name: Install Docker Compose v2
+      run: |
+        # Ensure we're using Docker Compose v2
+        docker compose version || echo "Docker Compose v2 not found, installing..."
+        if ! docker compose version; then
+          sudo curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker compose-linux-x86_64 -o /usr/local/bin/docker compose
+          sudo chmod +x /usr/local/bin/docker compose
+          sudo ln -sf /usr/local/bin/docker compose /usr/bin/docker compose
+        fi
+        docker compose version
+    
+    - name: Build test images
+      run: |
+        docker compose -f docker compose.test.yml build --parallel
+    
+    - name: Run unit tests
+      run: |
+        docker compose -f docker compose.test.yml run --rm unit-tests
+    
+    - name: Run integration tests
+      run: |
+        docker compose -f docker compose.test.yml run --rm integration-tests
+    
+    - name: Run full test suite
+      run: |
+        docker compose -f docker compose.test.yml up --abort-on-container-exit test-runner
+    
+    - name: Extract coverage reports
+      run: |
+        docker compose -f docker compose.test.yml run --rm test-runner sh -c "cp -r /app/coverage/* ./coverage/"
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/.coverage
+        fail_ci_if_error: false
+        verbose: true
+    
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-reports
+        path: coverage/
+    
+    - name: Clean up
+      if: always()
+      run: |
+        docker compose -f docker compose.test.yml down -v
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: v0.12.0  # Latest stable as of Dec 2024
+    
+    - name: Build dev image
+      run: |
+        docker compose build app
+    
+    - name: Run linting checks
+      run: |
+        docker compose -f docker compose.test.yml run --rm lint
+    
+    - name: Clean up
+      if: always()
+      run: |
+        docker compose down -v
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: v0.12.0  # Latest stable as of Dec 2024
+    
+    - name: Build images
+      run: |
+        docker compose build app
+        docker compose -f docker compose.test.yml build
+    
+    - name: Run security scans
+      run: |
+        docker compose -f docker compose.test.yml run --rm security
+    
+    - name: Scan Docker images with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'cms-nbi-client:latest'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Clean up
+      if: always()
+      run: |
+        docker compose down -v
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: v0.12.0  # Latest stable as of Dec 2024
+    
+    - name: Log in to Docker Hub
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: |
+          ${{ secrets.DOCKER_USERNAME }}/cms-nbi-client
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build package with Poetry
+      run: |
+        docker run --rm -v $PWD:/app -w /app python:3.11-alpine sh -c "
+          pip install poetry &&
+          poetry build
+        "
+    
+    - name: Store artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/

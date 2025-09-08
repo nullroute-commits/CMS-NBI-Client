@@ -1,0 +1,126 @@
+# Docker Compose v2.21+ required
+# Uses Compose specification: https://compose-spec.io/
+
+services:
+  # Main application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: cms-nbi-client:dev
+    container_name: cms-nbi-client-dev
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./docs:/app/docs
+      - ./Examples:/app/Examples
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - CMS_USERNAME=${CMS_USERNAME:-admin}
+      - CMS_PASSWORD=${CMS_PASSWORD:-secret}
+      - CMS_CONNECTION__HOST=${CMS_HOST:-localhost}
+      - CMS_CONNECTION__PROTOCOL=${CMS_PROTOCOL:-https}
+      - CMS_CONNECTION__VERIFY_SSL=${CMS_VERIFY_SSL:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    networks:
+      - cms-network
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Documentation server
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: cms-nbi-client:dev
+    container_name: cms-nbi-docs
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./docs:/app/docs
+      - ./mkdocs.yml:/app/mkdocs.yml
+      - ./src:/app/src
+    command: mkdocs serve --dev-addr 0.0.0.0:8000
+    networks:
+      - cms-network
+
+  # Mock CMS server for testing
+  mock-cms:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    image: cms-nbi-client:test-server
+    container_name: mock-cms-server
+    ports:
+      - "18443:18443"
+      - "8443:8443"
+    environment:
+      - MOCK_SERVER_PORT=18443
+      - MOCK_REST_PORT=8443
+    networks:
+      - cms-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18443/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: cms-nbi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - cms-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus for metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cms-nbi-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - cms-network
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cms-nbi-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - cms-network
+    depends_on:
+      - prometheus
+
+networks:
+  cms-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
