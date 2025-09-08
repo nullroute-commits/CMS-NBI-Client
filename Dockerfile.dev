@@ -1,4 +1,6 @@
+# syntax=docker/dockerfile:1.6
 # Development Dockerfile with all tools
+# Requires Docker BuildKit (DOCKER_BUILDKIT=1)
 FROM python:3.11-alpine
 
 # Install build and development dependencies

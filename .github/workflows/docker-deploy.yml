@@ -27,19 +27,21 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
+      uses: docker/setup-qemu-action@v3
     
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: v0.12.0  # Latest stable as of Dec 2024
     
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -47,7 +49,7 @@ jobs:
     
     - name: Extract metadata
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: |
           ${{ secrets.DOCKER_USERNAME }}/cms-nbi-client
@@ -60,7 +62,7 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
     
     - name: Build and push production image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
@@ -95,18 +97,18 @@ jobs:
         echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         
-        # Copy docker-compose files
+        # Copy docker compose files
         scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-          docker-compose.prod.yml \
+          docker compose.prod.yml \
           $DEPLOY_USER@$DEPLOY_HOST:/opt/cms-nbi-client/
         
-        # Deploy using docker-compose
+        # Deploy using docker compose
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
           $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
           cd /opt/cms-nbi-client
           export VERSION=${{ github.ref_name }}
-          docker-compose -f docker-compose.prod.yml pull
-          docker-compose -f docker-compose.prod.yml up -d
+          docker compose -f docker compose.prod.yml pull
+          docker compose -f docker compose.prod.yml up -d
           docker system prune -f
         EOF
 
@@ -130,28 +132,28 @@ jobs:
         echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         
-        # Copy docker-compose files
+        # Copy docker compose files
         scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-          docker-compose.prod.yml \
+          docker compose.prod.yml \
           $DEPLOY_USER@$DEPLOY_HOST:/opt/cms-nbi-client/
         
-        # Deploy using docker-compose with zero downtime
+        # Deploy using docker compose with zero downtime
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
           $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
           cd /opt/cms-nbi-client
           export VERSION=${{ github.ref_name }}
           
           # Pull new images
-          docker-compose -f docker-compose.prod.yml pull
+          docker compose -f docker compose.prod.yml pull
           
           # Start new containers alongside old ones
-          docker-compose -f docker-compose.prod.yml up -d --no-deps --scale app=2 app
+          docker compose -f docker compose.prod.yml up -d --no-deps --scale app=2 app
           
           # Wait for health checks
           sleep 30
           
           # Remove old containers
-          docker-compose -f docker-compose.prod.yml up -d --no-deps --remove-orphans app
+          docker compose -f docker compose.prod.yml up -d --no-deps --remove-orphans app
           
           # Cleanup
           docker system prune -f

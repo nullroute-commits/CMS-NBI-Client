@@ -1,4 +1,5 @@
-version: '3.8'
+# Docker Compose v2.21+ required
+# Uses Compose specification: https://compose-spec.io/
 
 services:
   # Test runner service

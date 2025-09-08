@@ -1,8 +1,12 @@
+# syntax=docker/dockerfile:1.6
 # Multi-stage build for minimal image size
+# Requires Docker BuildKit (DOCKER_BUILDKIT=1)
 FROM python:3.11-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache \
+# Use BuildKit cache mount for package manager cache
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
     gcc \
     musl-dev \
     libffi-dev \
@@ -43,8 +47,10 @@ RUN addgroup -g 1000 -S appuser && \
 WORKDIR /app
 
 # Copy requirements and install
+# Use BuildKit cache mount for pip cache
 COPY --from=builder /app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/

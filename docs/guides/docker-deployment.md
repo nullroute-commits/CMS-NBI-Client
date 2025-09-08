@@ -22,10 +22,10 @@ git clone https://github.com/somenetworking/CMS-NBI-Client.git
 cd CMS-NBI-Client
 
 # Start development environment
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Access services
 # - Application: inside container
@@ -37,29 +37,37 @@ docker-compose logs -f app
 
 ```bash
 # Run all tests
-docker-compose -f docker-compose.test.yml up test-runner
+docker compose -f docker compose.test.yml up test-runner
 
 # Run unit tests only
-docker-compose -f docker-compose.test.yml run --rm unit-tests
+docker compose -f docker compose.test.yml run --rm unit-tests
 
 # Run integration tests
-docker-compose -f docker-compose.test.yml run --rm integration-tests
+docker compose -f docker compose.test.yml run --rm integration-tests
 
 # Run linting
-docker-compose -f docker-compose.test.yml run --rm lint
+docker compose -f docker compose.test.yml run --rm lint
 
 # Run security scans
-docker-compose -f docker-compose.test.yml run --rm security
+docker compose -f docker compose.test.yml run --rm security
 ```
 
 ## Production Deployment
 
 ### Prerequisites
 
-- Docker Engine 20.10+
-- Docker Compose 1.29+
+- Docker Engine 24.0+ (includes Docker Compose v2)
+- Docker Buildx v0.12+ (included in Docker Desktop)
+- Docker Compose v2.21+ (included in Docker Engine)
 - 2GB RAM minimum
 - 10GB disk space
+
+To verify your versions:
+```bash
+docker --version          # Should be 24.0 or higher
+docker compose version    # Should be v2.21 or higher
+docker buildx version     # Should be v0.12 or higher
+```
 
 ### Environment Configuration
 
@@ -90,30 +98,30 @@ VERSION=2.0.0
 ### Deploy Production Stack
 
 ```bash
-# Deploy with docker-compose
-docker-compose -f docker-compose.prod.yml up -d
+# Deploy with docker compose
+docker compose -f docker compose.prod.yml up -d
 
 # Check status
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker compose.prod.yml ps
 
 # View logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker compose.prod.yml logs -f
 
 # Scale application
-docker-compose -f docker-compose.prod.yml up -d --scale app=3
+docker compose -f docker compose.prod.yml up -d --scale app=3
 ```
 
 ### Zero-Downtime Updates
 
 ```bash
 # Pull latest images
-docker-compose -f docker-compose.prod.yml pull
+docker compose -f docker compose.prod.yml pull
 
 # Update with zero downtime
-docker-compose -f docker-compose.prod.yml up -d --no-deps app
+docker compose -f docker compose.prod.yml up -d --no-deps app
 
 # Verify new version
-docker-compose -f docker-compose.prod.yml exec app python -c "import cmsnbiclient; print(cmsnbiclient.__version__)"
+docker compose -f docker compose.prod.yml exec app python -c "import cmsnbiclient; print(cmsnbiclient.__version__)"
 ```
 
 ## Docker Images
@@ -288,12 +296,12 @@ logging:
 
 ```bash
 # Backup Redis
-docker-compose -f docker-compose.prod.yml exec redis redis-cli BGSAVE
-docker cp $(docker-compose -f docker-compose.prod.yml ps -q redis):/data/dump.rdb ./redis-backup.rdb
+docker compose -f docker compose.prod.yml exec redis redis-cli BGSAVE
+docker cp $(docker compose -f docker compose.prod.yml ps -q redis):/data/dump.rdb ./redis-backup.rdb
 
 # Restore Redis
-docker cp ./redis-backup.rdb $(docker-compose -f docker-compose.prod.yml ps -q redis):/data/dump.rdb
-docker-compose -f docker-compose.prod.yml restart redis
+docker cp ./redis-backup.rdb $(docker compose -f docker compose.prod.yml ps -q redis):/data/dump.rdb
+docker compose -f docker compose.prod.yml restart redis
 ```
 
 ### Backup Prometheus Data
@@ -303,7 +311,7 @@ docker-compose -f docker-compose.prod.yml restart redis
 curl -XPOST http://localhost:9090/api/v1/admin/tsdb/snapshot
 
 # Copy snapshot
-docker cp $(docker-compose -f docker-compose.prod.yml ps -q prometheus):/prometheus/snapshots ./prometheus-backup
+docker cp $(docker compose -f docker compose.prod.yml ps -q prometheus):/prometheus/snapshots ./prometheus-backup
 ```
 
 ## Troubleshooting
@@ -312,13 +320,13 @@ docker cp $(docker-compose -f docker-compose.prod.yml ps -q prometheus):/prometh
 
 ```bash
 # Check logs
-docker-compose -f docker-compose.prod.yml logs app
+docker compose -f docker compose.prod.yml logs app
 
 # Inspect container
-docker-compose -f docker-compose.prod.yml run --rm app sh
+docker compose -f docker compose.prod.yml run --rm app sh
 
 # Check health
-docker inspect $(docker-compose -f docker-compose.prod.yml ps -q app) | jq '.[0].State.Health'
+docker inspect $(docker compose -f docker compose.prod.yml ps -q app) | jq '.[0].State.Health'
 ```
 
 ### Performance Issues
@@ -328,20 +336,20 @@ docker inspect $(docker-compose -f docker-compose.prod.yml ps -q app) | jq '.[0]
 docker stats
 
 # Increase limits
-docker-compose -f docker-compose.prod.yml up -d --scale app=5
+docker compose -f docker compose.prod.yml up -d --scale app=5
 
 # Clear cache
-docker-compose -f docker-compose.prod.yml exec redis redis-cli FLUSHALL
+docker compose -f docker compose.prod.yml exec redis redis-cli FLUSHALL
 ```
 
 ### Network Problems
 
 ```bash
 # Test connectivity
-docker-compose -f docker-compose.prod.yml exec app ping cms.example.com
+docker compose -f docker compose.prod.yml exec app ping cms.example.com
 
 # Check DNS
-docker-compose -f docker-compose.prod.yml exec app nslookup cms.example.com
+docker compose -f docker compose.prod.yml exec app nslookup cms.example.com
 ```
 
 ## CI/CD Integration
