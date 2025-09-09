@@ -38,13 +38,15 @@ class Query:
             ValueError: Will be raised if the object provided is not of cmsnbiclient.client.Client()
             ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
         """
-        # Test if the provided object is of a Client instance
-
-        if isinstance(client_object, Client):
+        # Test if the provided object is of a Client instance or CMSClient
+        # Import at runtime to avoid circular imports
+        from ..client_v2 import CMSClient
+        
+        if isinstance(client_object, (Client, CMSClient)):
             pass
         else:
             raise ValueError(
-                f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(client_object)}"""
+                f"""Query_E7_Data accepts a instance of Client or CMSClient, a instance of {type(client_object)}"""
             )
         self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri

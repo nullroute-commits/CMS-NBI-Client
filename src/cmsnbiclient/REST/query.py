@@ -18,13 +18,15 @@ class Query:
         :var self.cms_nbi_connect_object: accepts object created by the CMS_NBI_Client
         :type self.cms_nbi_connect_object: object
         """
-        # Test if the provided object is of a CMS_NBI_Client instance
-
-        if isinstance(cms_nbi_connect_object, Client):
+        # Test if the provided object is of a Client instance or CMSClient
+        # Import at runtime to avoid circular imports
+        from ..client_v2 import CMSClient
+        
+        if isinstance(cms_nbi_connect_object, (Client, CMSClient)):
             pass
         else:
             raise ValueError(
-                f"""Query accepts a instance of cms_nbi_client, a instance of {type(cms_nbi_connect_object)}"""
+                f"""Query accepts a instance of Client or CMSClient, a instance of {type(cms_nbi_connect_object)}"""
             )
         self.cms_nbi_connect_object = cms_nbi_connect_object
 
