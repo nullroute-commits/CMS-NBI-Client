@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Mock CMS server for testing"""
 
-import json
 import os
 
 import structlog

@@ -1,7 +1,5 @@
 """Tests for package imports and basic functionality."""
 
-import pytest
-
 
 class TestImports:
     """Test that all major components can be imported."""

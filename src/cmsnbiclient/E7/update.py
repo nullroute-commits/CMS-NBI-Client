@@ -1,11 +1,10 @@
 # IMPORT STATEMENTS
 import random
 
+import pydash
 import requests
 import xmltodict
 
-# Additional imports if needed
-# import pydash  # Note: pydash is not in dependencies
 from ..client import Client  # Import Client from relative path to avoid circular import
 
 # IMPORT STATEMENTS
@@ -293,6 +292,7 @@ class Update:
     def ont_geth(
         self,
         ont_id: str = "",
+        ontslot: str = "",
         ontethge: str = "",
         admin_state: str = "",
         subscr_id: str = "",

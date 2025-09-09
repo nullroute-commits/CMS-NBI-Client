@@ -31,8 +31,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic import ConfigDict, Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import Field, SecretStr, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ConnectionConfig(BaseSettings):
@@ -82,7 +82,7 @@ class ConnectionConfig(BaseSettings):
 
     @field_validator("ca_bundle")
     @classmethod
-    def validate_ca_bundle(cls, v):
+    def validate_ca_bundle(cls, v: Optional[Path]) -> Optional[Path]:
         """Validate that CA bundle file exists if provided.
 
         Args:
@@ -127,7 +127,7 @@ class CredentialsConfig(BaseSettings):
     username: str = Field(..., min_length=1, description="CMS username")
     password: SecretStr = Field(..., min_length=1, description="CMS password")
 
-    model_config = ConfigDict(env_prefix="CMS_", env_file=".env", case_sensitive=False)
+    model_config = SettingsConfigDict(env_prefix="CMS_", env_file=".env", case_sensitive=False)
 
 
 class PerformanceConfig(BaseSettings):
@@ -242,7 +242,9 @@ class Config(BaseSettings):
         default_factory=list, description="List of network names to work with"
     )
 
-    model_config = ConfigDict(env_nested_delimiter="__", env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_nested_delimiter="__", env_file=".env", env_file_encoding="utf-8"
+    )
 
     @classmethod
     def from_file(cls, path: Path) -> "Config":

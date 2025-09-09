@@ -1,9 +1,8 @@
 """Integration tests using mock server."""
 
 import pytest
-from aiohttp import web
 
-from cmsnbiclient import CMSClient, Config
+from cmsnbiclient import Config
 
 
 @pytest.mark.asyncio

@@ -8,6 +8,7 @@ import structlog
 from aiohttp import ClientTimeout, TCPConnector
 
 from .circuit_breaker import CircuitBreaker
+from .config import Config
 
 logger = structlog.get_logger()
 
@@ -15,7 +16,7 @@ logger = structlog.get_logger()
 class AsyncHTTPTransport:
     """Async HTTP/HTTPS transport with connection pooling"""
 
-    def __init__(self, config: "Config"):
+    def __init__(self, config: Config):
         self.config = config
         self._session: Optional[aiohttp.ClientSession] = None
         self._circuit_breaker = (
@@ -27,7 +28,7 @@ class AsyncHTTPTransport:
             else None
         )
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         """Initialize transport with connection pool"""
         ssl_context = self._create_ssl_context()
 
@@ -68,18 +69,21 @@ class AsyncHTTPTransport:
         url: str,
         data: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
-        auth: Optional[aiohttp.BasicAuth] = None,
+        timeout: Optional[float] = None,
     ) -> aiohttp.ClientResponse:
         """Execute HTTP request with circuit breaker"""
         if not self._session:
             await self.initialize()
 
+        # Convert timeout to aiohttp timeout
+        aio_timeout = ClientTimeout(total=timeout) if timeout else None
+
         if self._circuit_breaker:
             return await self._circuit_breaker.call(
-                self._do_request, method, url, data, headers, auth
+                self._do_request, method, url, data, headers, None, aio_timeout
             )
         else:
-            return await self._do_request(method, url, data, headers, auth)
+            return await self._do_request(method, url, data, headers, None, aio_timeout)
 
     async def _do_request(
         self,
@@ -88,15 +92,19 @@ class AsyncHTTPTransport:
         data: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
         auth: Optional[aiohttp.BasicAuth] = None,
+        timeout: Optional[ClientTimeout] = None,
     ) -> aiohttp.ClientResponse:
         """Execute actual HTTP request"""
+        if self._session is None:
+            raise RuntimeError("Transport not initialized. Call initialize() first.")
+        
         async with self._session.request(
-            method=method, url=url, data=data, headers=headers, auth=auth
+            method=method, url=url, data=data, headers=headers, auth=auth, timeout=timeout
         ) as response:
             response.raise_for_status()
             return response
 
-    async def close(self):
+    async def close(self) -> None:
         """Close transport connections"""
         if self._session:
             await self._session.close()
