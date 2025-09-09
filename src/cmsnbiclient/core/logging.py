@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import structlog
 
@@ -54,7 +54,7 @@ def setup_logging(
     )
 
 
-def get_logger(name: str = None) -> structlog.BoundLogger:
+def get_logger(name: Optional[str] = None) -> structlog.BoundLogger:
     """Get a configured logger instance"""
     return structlog.get_logger(name)
 
@@ -62,15 +62,15 @@ def get_logger(name: str = None) -> structlog.BoundLogger:
 class LogContext:
     """Context manager for adding temporary log context"""
 
-    def __init__(self, logger: structlog.BoundLogger, **kwargs):
+    def __init__(self, logger: structlog.BoundLogger, **kwargs: Any) -> None:
         self.logger = logger
         self.context = kwargs
         self.token = None
 
-    def __enter__(self):
+    def __enter__(self) -> "LogContext":
         self.token = structlog.contextvars.bind_contextvars(**self.context)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self.token:
             structlog.contextvars.unbind_contextvars(*self.context.keys())

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import defusedxml.ElementTree as ET
 import structlog
@@ -17,7 +17,7 @@ class SecureXMLHandler:
     </xs:schema>
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._schema = None
 
     def parse(self, xml_string: str) -> Dict[str, Any]:
@@ -31,7 +31,11 @@ class SecureXMLHandler:
                 self._schema.assertValid(root)
 
             # Convert to dict
-            return self._element_to_dict(root)
+            result = self._element_to_dict(root)
+            # Ensure we always return a dict
+            if isinstance(result, str):
+                return {root.tag: result}
+            return result
 
         except ET.ParseError as e:
             logger.error(f"XML parsing error: {e}")
@@ -40,7 +44,7 @@ class SecureXMLHandler:
             logger.error(f"Unexpected error parsing XML: {e}")
             raise
 
-    def _element_to_dict(self, element) -> Dict[str, Any]:
+    def _element_to_dict(self, element: ET.Element) -> Union[Dict[str, Any], str]:
         """Convert XML element to dictionary"""
         result = {}
 
@@ -71,4 +75,4 @@ class SecureXMLHandler:
     def build(self, data: Dict[str, Any]) -> str:
         """Build XML from dictionary using templates"""
         # Implementation using lxml builder for safety
-        pass
+        raise NotImplementedError("XML building not yet implemented")

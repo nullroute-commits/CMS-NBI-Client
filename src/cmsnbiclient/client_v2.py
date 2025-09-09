@@ -26,7 +26,8 @@ class CMSClient(BaseClient):
         self._auth_lock = asyncio.Lock()
 
         # Operation handlers
-        self.e7 = E7Operations(self)
+        # Note: E7 operations currently require LegacyClient interface
+        # self.e7 = E7Operations(self)  # Disabled during transition
         self.rest = RESTOperations(self)
 
     async def authenticate(self) -> None:
@@ -145,13 +146,13 @@ class SyncCMSClient:
         self._client: Optional[CMSClient] = None
         self._loop: Optional[asyncio.AbstractEventLoop] = None
 
-    def __enter__(self):
+    def __enter__(self) -> "SyncCMSClient":
         self._loop = asyncio.new_event_loop()
         self._client = CMSClient(self._config)
         self._loop.run_until_complete(self._client.authenticate())
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._client and self._loop:
             self._loop.run_until_complete(self._client.close())
             self._loop.close()

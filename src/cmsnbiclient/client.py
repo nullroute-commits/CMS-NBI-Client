@@ -2,17 +2,17 @@
 import json
 import os
 import random
+from typing import Any, Dict
+
+import pydash
 import requests
 import xmltodict
-
-# Additional imports if needed
-# import pydash  # Note: pydash is not in dependencies, commenting out
 
 # IMPORT STATEMENTS
 
 
 class Client:
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Description
         -----------
@@ -33,7 +33,7 @@ class Client:
         :type self.session_id:str
         """
         # default config data
-        self.cms_nbi_config = {}
+        self.cms_nbi_config: Dict[str, Any] = {}
         config_data = {
             "config": {
                 "cms_nodes": {

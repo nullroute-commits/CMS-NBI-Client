@@ -26,7 +26,10 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional, Protocol, TypeVar, Union
 
 import structlog
+from aiohttp import ClientResponse
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+from .config import Config
 
 logger = structlog.get_logger()
 
@@ -51,7 +54,7 @@ class TransportProtocol(Protocol):
         data: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
         timeout: Optional[float] = None,
-    ) -> "Response":
+    ) -> ClientResponse:
         """Execute a network request.
 
         Args:
@@ -94,7 +97,7 @@ class BaseClient(ABC):
         ```
     """
 
-    def __init__(self, config: "Config"):
+    def __init__(self, config: Config):
         """Initialize the base client.
 
         Args:
@@ -126,7 +129,7 @@ class BaseClient(ABC):
         """
         pass
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "BaseClient":
         """Async context manager entry.
 
         Authenticates the client when entering the context.
@@ -137,7 +140,7 @@ class BaseClient(ABC):
         await self.authenticate()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit.
 
         Closes the client when exiting the context.

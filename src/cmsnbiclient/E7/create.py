@@ -1,10 +1,10 @@
 # IMPORT STATEMENTS
 import random
+
+import pydash
 import requests
 import xmltodict
 
-# Additional imports if needed  
-# import pydash  # Note: pydash is not in dependencies
 from ..client import Client  # Import Client from relative path to avoid circular import
 
 # IMPORT STATEMENTS
@@ -41,7 +41,7 @@ class Create:
         # Test if the provided object is of a Client instance or CMSClient
         # Import at runtime to avoid circular imports
         from ..client_v2 import CMSClient
-        
+
         if isinstance(client_object, (Client, CMSClient)):
             pass
         else:

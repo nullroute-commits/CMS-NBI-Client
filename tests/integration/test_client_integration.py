@@ -1,9 +1,8 @@
 """Integration tests using mock server."""
 
 import pytest
-from aiohttp import web
 
-from cmsnbiclient import CMSClient, Config
+from cmsnbiclient import Config
 
 
 @pytest.mark.asyncio
@@ -12,9 +11,9 @@ async def test_config_and_client_creation():
     config = Config(
         credentials={"username": "testuser", "password": "testpass"},
         connection={"host": "localhost", "verify_ssl": False},
-        performance={"connection_pool_size": 10}
+        performance={"connection_pool_size": 10},
     )
-    
+
     # Basic creation test - this verifies imports and basic compatibility
     # but doesn't try to actually use E7Operations which require legacy client compatibility
     assert config.credentials.username == "testuser"
@@ -26,22 +25,22 @@ async def test_config_and_client_creation():
 async def test_legacy_client_creation():
     """Test legacy client creation."""
     from cmsnbiclient import LegacyClient
-    
+
     # Should be able to create legacy client
     legacy_client = LegacyClient()
     assert legacy_client is not None
 
 
-@pytest.mark.asyncio 
+@pytest.mark.asyncio
 async def test_logging_functionality():
     """Test logging setup and functionality."""
-    from cmsnbiclient import setup_logging, get_logger
-    
+    from cmsnbiclient import get_logger, setup_logging
+
     # Test setup with different configurations
     setup_logging(log_level="DEBUG", json_logs=False)
     logger = get_logger("test_logger")
     assert logger is not None
-    
+
     # Test JSON logging
     setup_logging(log_level="INFO", json_logs=True)
     json_logger = get_logger("json_test")
@@ -52,14 +51,14 @@ async def test_logging_functionality():
 async def test_config_validation():
     """Test configuration validation."""
     from pydantic import ValidationError
-    
+
     # Test invalid configurations
     with pytest.raises(ValidationError):
         Config(credentials={"username": "", "password": "test"})
-    
+
     with pytest.raises(ValidationError):
         Config(credentials={"username": "test", "password": ""})
-    
+
     # Test valid configuration with defaults
     config = Config(credentials={"username": "test", "password": "test"})
     assert config.connection.protocol == "https"
@@ -76,15 +75,12 @@ async def test_config_from_dict():
             "protocol": "https",
             "host": "cms.example.com",
             "netconf_port": 8443,
-            "verify_ssl": True
+            "verify_ssl": True,
         },
-        "performance": {
-            "connection_pool_size": 50,
-            "max_concurrent_requests": 25
-        },
-        "network_names": ["NTWK-1", "NTWK-2"]
+        "performance": {"connection_pool_size": 50, "max_concurrent_requests": 25},
+        "network_names": ["NTWK-1", "NTWK-2"],
     }
-    
+
     config = Config(**config_dict)
     assert config.credentials.username == "testuser"
     assert config.connection.host == "cms.example.com"
@@ -97,14 +93,14 @@ async def test_config_from_dict():
 async def test_security_features():
     """Test security-related features."""
     try:
-        from cmsnbiclient.security.xml import parse_xml_safely
         from cmsnbiclient.security.credentials import SecureCredentialManager
-        
+        from cmsnbiclient.security.xml import parse_xml_safely
+
         # Test XML security
         safe_xml = "<test>data</test>"
         result = parse_xml_safely(safe_xml)
         assert result is not None
-        
+
         # Test credential manager creation
         manager = SecureCredentialManager()
         assert manager is not None
