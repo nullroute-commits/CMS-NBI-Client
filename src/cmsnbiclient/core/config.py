@@ -12,16 +12,16 @@ Classes:
 Example:
     ```python
     from cmsnbiclient.core.config import Config
-    
+
     # From environment variables
     config = Config()
-    
+
     # From dictionary
     config = Config(
         credentials={"username": "user", "password": "pass"},
         connection={"host": "cms.example.com"}
     )
-    
+
     # From file
     config = Config.from_file("config.yaml")
     ```

@@ -12,7 +12,7 @@ Classes:
 Example:
     ```python
     from cmsnbiclient.core.base import BaseClient, BaseOperation
-    
+
     class MyCustomClient(BaseClient):
         async def authenticate(self) -> None:
             # Custom authentication logic

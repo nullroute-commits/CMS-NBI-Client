@@ -164,12 +164,12 @@ class Client:
         if len(cms_user_nm) >= 1:
             self.cms_user_nm = cms_user_nm
         else:
-            raise ValueError(f"""cms_user_nm parameter must be a string with at least one char""")
+            raise ValueError("cms_user_nm parameter must be a string with at least one char")
 
         if len(cms_user_pass) >= 1:
             self.cms_user_pass = cms_user_pass
         else:
-            raise ValueError(f"""cms_user_pass parameter must be a string with at least one char""")
+            raise ValueError("cms_user_pass parameter must be a string with at least one char")
 
         payload = f"""<?xml version="1.0" encoding="UTF-8"?>
                     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
