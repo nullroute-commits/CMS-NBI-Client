@@ -1,6 +1,6 @@
 import asyncio
 import ssl
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import aiohttp
 import certifi
@@ -97,7 +97,7 @@ class AsyncHTTPTransport:
         """Execute actual HTTP request"""
         if self._session is None:
             raise RuntimeError("Transport not initialized. Call initialize() first.")
-        
+
         async with self._session.request(
             method=method, url=url, data=data, headers=headers, auth=auth, timeout=timeout
         ) as response:

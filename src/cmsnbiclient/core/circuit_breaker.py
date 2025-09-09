@@ -48,7 +48,7 @@ class CircuitBreaker:
             result = await func(*args, **kwargs)
             await self._on_success()
             return result
-        except self.expected_exception as e:
+        except self.expected_exception:
             await self._on_failure()
             raise
 
@@ -73,6 +73,6 @@ class CircuitBreaker:
     def _should_attempt_reset(self) -> bool:
         """Check if should attempt reset"""
         return (
-            self._last_failure_time is not None 
+            self._last_failure_time is not None
             and datetime.now() - self._last_failure_time > timedelta(seconds=self.recovery_timeout)
         )

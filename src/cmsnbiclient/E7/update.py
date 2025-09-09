@@ -57,23 +57,23 @@ class Update:
                     f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}"""
                 )
         else:
-            raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
+            raise ValueError("self.client_object.cms_netconf_url must be a str object")
         # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
         if isinstance(self.client_object.session_id, str):
             if self.client_object.session_id.isdigit():
                 pass
             else:
-                raise ValueError(f"""self.client_object.session_id must be a int in a str object""")
+                raise ValueError("self.client_object.session_id must be a int in a str object")
         else:
-            raise ValueError(f"""self.client_object.session_id must be a str object""")
+            raise ValueError("self.client_object.session_id must be a str object")
         # TEST IF THE NETWORK_NM is an empty string
         if isinstance(network_nm, str):
             if len(network_nm) >= 1:
                 pass
             else:
-                raise ValueError(f"""network_nm cannot be an empty str""")
+                raise ValueError("network_nm cannot be an empty str")
         else:
-            raise ValueError(f"""network_nm must be a str""")
+            raise ValueError("network_nm must be a str")
         # END PARAMETER TEST BLOCK
 
         # ASSIGNING CLASS VARIABLES

@@ -68,6 +68,10 @@ target-version = ['py39']
 profile = "black"
 line_length = 100
 
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503"]
+
 [tool.mypy]
 python_version = "3.9"
 warn_return_any = true

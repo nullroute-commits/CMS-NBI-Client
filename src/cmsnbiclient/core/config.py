@@ -12,24 +12,23 @@ Classes:
 Example:
     ```python
     from cmsnbiclient.core.config import Config
-    
+
     # From environment variables
     config = Config()
-    
+
     # From dictionary
     config = Config(
         credentials={"username": "user", "password": "pass"},
         connection={"host": "cms.example.com"}
     )
-    
+
     # From file
     config = Config.from_file("config.yaml")
     ```
 """
 
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict

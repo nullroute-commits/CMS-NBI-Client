@@ -12,7 +12,7 @@ Classes:
 Example:
     ```python
     from cmsnbiclient.core.base import BaseClient, BaseOperation
-    
+
     class MyCustomClient(BaseClient):
         async def authenticate(self) -> None:
             # Custom authentication logic
@@ -20,10 +20,8 @@ Example:
     ```
 """
 
-import asyncio
 from abc import ABC, abstractmethod
-from contextlib import asynccontextmanager
-from typing import Any, Dict, Optional, Protocol, TypeVar, Union
+from typing import Any, Dict, Optional, Protocol, TypeVar
 
 import structlog
 from aiohttp import ClientResponse
