@@ -26,7 +26,8 @@ class CMSClient(BaseClient):
         self._auth_lock = asyncio.Lock()
 
         # Operation handlers
-        self.e7 = E7Operations(self)
+        # Note: E7 operations currently require LegacyClient interface
+        # self.e7 = E7Operations(self)  # Disabled during transition
         self.rest = RESTOperations(self)
 
     async def authenticate(self) -> None:
