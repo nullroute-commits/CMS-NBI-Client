@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import aiohttp
 import structlog
@@ -8,7 +8,6 @@ import structlog
 from .core.base import BaseClient
 from .core.config import Config
 from .core.transport import AsyncHTTPTransport
-from .E7 import E7Operations
 from .REST import RESTOperations
 from .security.credentials import SecureCredentialManager
 

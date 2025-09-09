@@ -1,8 +1,8 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Union
+from xml.etree.ElementTree import Element
 
 import defusedxml.ElementTree as ET
 import structlog
-from lxml import etree
 
 logger = structlog.get_logger()
 
@@ -44,7 +44,7 @@ class SecureXMLHandler:
             logger.error(f"Unexpected error parsing XML: {e}")
             raise
 
-    def _element_to_dict(self, element: ET.Element) -> Union[Dict[str, Any], str]:
+    def _element_to_dict(self, element: Element) -> Union[Dict[str, Any], str]:
         """Convert XML element to dictionary"""
         result = {}
 
