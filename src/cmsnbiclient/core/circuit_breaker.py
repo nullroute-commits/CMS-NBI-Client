@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Callable, Optional, TypeVar
+from typing import Any, Awaitable, Callable, Optional, Type, TypeVar
 
 import structlog
 
@@ -23,7 +23,7 @@ class CircuitBreaker:
         self,
         failure_threshold: int = 5,
         recovery_timeout: int = 60,
-        expected_exception: type = Exception,
+        expected_exception: Type[Exception] = Exception,
     ):
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -34,7 +34,7 @@ class CircuitBreaker:
         self._state = CircuitState.CLOSED
         self._lock = asyncio.Lock()
 
-    async def call(self, func: Callable, *args, **kwargs) -> T:
+    async def call(self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
         """Call function through circuit breaker"""
         async with self._lock:
             if self._state == CircuitState.OPEN:
@@ -52,7 +52,7 @@ class CircuitBreaker:
             await self._on_failure()
             raise
 
-    async def _on_success(self):
+    async def _on_success(self) -> None:
         """Handle successful call"""
         async with self._lock:
             if self._state == CircuitState.HALF_OPEN:
@@ -60,7 +60,7 @@ class CircuitBreaker:
                 self._failure_count = 0
                 logger.info("Circuit breaker closed")
 
-    async def _on_failure(self):
+    async def _on_failure(self) -> None:
         """Handle failed call"""
         async with self._lock:
             self._failure_count += 1
@@ -72,6 +72,7 @@ class CircuitBreaker:
 
     def _should_attempt_reset(self) -> bool:
         """Check if should attempt reset"""
-        return self._last_failure_time and datetime.now() - self._last_failure_time > timedelta(
-            seconds=self.recovery_timeout
+        return (
+            self._last_failure_time is not None 
+            and datetime.now() - self._last_failure_time > timedelta(seconds=self.recovery_timeout)
         )

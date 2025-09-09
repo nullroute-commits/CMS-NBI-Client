@@ -31,7 +31,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic import Field, SecretStr, field_validator, ConfigDict
+from pydantic import ConfigDict, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -127,11 +127,7 @@ class CredentialsConfig(BaseSettings):
     username: str = Field(..., min_length=1, description="CMS username")
     password: SecretStr = Field(..., min_length=1, description="CMS password")
 
-    model_config = ConfigDict(
-        env_prefix="CMS_",
-        env_file=".env",
-        case_sensitive=False
-    )
+    model_config = ConfigDict(env_prefix="CMS_", env_file=".env", case_sensitive=False)
 
 
 class PerformanceConfig(BaseSettings):
@@ -246,11 +242,7 @@ class Config(BaseSettings):
         default_factory=list, description="List of network names to work with"
     )
 
-    model_config = ConfigDict(
-        env_nested_delimiter="__",
-        env_file=".env",
-        env_file_encoding="utf-8"
-    )
+    model_config = ConfigDict(env_nested_delimiter="__", env_file=".env", env_file_encoding="utf-8")
 
     @classmethod
     def from_file(cls, path: Path) -> "Config":

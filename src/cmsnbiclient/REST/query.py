@@ -21,7 +21,7 @@ class Query:
         # Test if the provided object is of a Client instance or CMSClient
         # Import at runtime to avoid circular imports
         from ..client_v2 import CMSClient
-        
+
         if isinstance(cms_nbi_connect_object, (Client, CMSClient)):
             pass
         else:
