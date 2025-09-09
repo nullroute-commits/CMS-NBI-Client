@@ -1,10 +1,17 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, json, os, random, xmltodict, pydash)
+import json
+import os
+import random
+import requests
+import xmltodict
+
+# Additional imports if needed
+# import pydash  # Note: pydash is not in dependencies, commenting out
+
 # IMPORT STATEMENTS
 
 
 class Client:
-
     def __init__(self):
         """
         Description
@@ -27,29 +34,43 @@ class Client:
         """
         # default config data
         self.cms_nbi_config = {}
-        config_data = {'config': {'cms_nodes': {'default': {
-            'connection': {'protocol': {'http': 'http', 'https': 'https'}, 'netconf_http_port': '18080',
-                           'netconf_https_port': '18443', 'rest_http_port': '8080', 'http_timeout': 500,
-                           'cms_node_ip': 'localhost'},
-            'cms_creds': {'user_nm': 'rootgod', 'pass_wd': 'root'}
+        config_data = {
+            "config": {
+                "cms_nodes": {
+                    "default": {
+                        "connection": {
+                            "protocol": {"http": "http", "https": "https"},
+                            "netconf_http_port": "18080",
+                            "netconf_https_port": "18443",
+                            "rest_http_port": "8080",
+                            "http_timeout": 500,
+                            "cms_node_ip": "localhost",
+                        },
+                        "cms_creds": {"user_nm": "rootgod", "pass_wd": "root"},
+                    }
+                },
+                "cms_netconf_uri": {
+                    "e7": "/cmsexc/ex/netconf",
+                    "c7/e3/e5-100": "/cmsweb/nc",
+                    "ae_ont": "/cmsae/ae/netconf",
+                },
+                "cms_rest_uri": {
+                    "devices": "/restnbi/devices?deviceType=",
+                    "region": "/restnbi/region",
+                    "topology": "/restnbi/toplinks",
+                    "profile": "/restnbi/profiles?profileType=",
+                },
             }
-                                                },
-                                  'cms_netconf_uri': {'e7': '/cmsexc/ex/netconf', 'c7/e3/e5-100': '/cmsweb/nc',
-                                                      'ae_ont': '/cmsae/ae/netconf'},
-                                  'cms_rest_uri': {'devices': '/restnbi/devices?deviceType=',
-                                                   'region': '/restnbi/region', 'topology': '/restnbi/toplinks',
-                                                   'profile': '/restnbi/profiles?profileType='}
-                                  }
-                       }
+        }
         # collects the current working directory(cwd) then creates a path for the cms_nbi_config.json file
         cwd = os.getcwd()
-        cf_path = os.path.join(cwd, 'cms_nbi_config.json')
+        cf_path = os.path.join(cwd, "cms_nbi_config.json")
 
         def config_file_checker(data=config_data, config_file_path=cf_path):
             # function to check if the cms_nbi_config.json file exist in the local dir
             # if it doesn't it will dump the default config to the cms_nbi_config.json file in local dir
             if not os.path.exists(config_file_path):
-                with open(config_file_path, 'w') as config_file:
+                with open(config_file_path, "w") as config_file:
                     json.dump(data, config_file, indent=5)
                 return True
             else:
@@ -57,8 +78,8 @@ class Client:
 
         def config_importer(config_file_path=cf_path):
             # function to import the stored json data at cms_nbi_config.json
-            with open(config_file_path, 'r') as cf_file:
-                self.cms_nbi_config = json.load(cf_file)['config']
+            with open(config_file_path, "r") as cf_file:
+                self.cms_nbi_config = json.load(cf_file)["config"]
 
         # try/except clause to check if the config file exist and import the data
         # if cms_nbi_config.json does not exist then it will create it and dump a default config into it
@@ -85,9 +106,21 @@ class Client:
 
     @property
     def headers(self):
-        return {'Content-Type': 'text/xml;charset=ISO-8859-1', 'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+        return {
+            "Content-Type": "text/xml;charset=ISO-8859-1",
+            "User-Agent": f"CMS_NBI_CONNECT-{self.cms_user_nm}",
+        }
 
-    def login_netconf(self, cms_user_nm='rootgod', cms_user_pass='root', protocol='http', port='18080', cms_node_ip='localhost', uri='', http_timeout=1):
+    def login_netconf(
+        self,
+        cms_user_nm="rootgod",
+        cms_user_pass="root",
+        protocol="http",
+        port="18080",
+        cms_node_ip="localhost",
+        uri="",
+        http_timeout=1,
+    ):
         """
         Description
         -----------
@@ -150,11 +183,15 @@ class Client:
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if protocol == 'http':
+        if protocol == "http":
             try:
-                response = requests.post(url=self.cms_netconf_url, headers=self.headers, data=payload, timeout=http_timeout)
+                response = requests.post(
+                    url=self.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 # future came and it decided to have raise
                 raise e
         else:
@@ -168,14 +205,14 @@ class Client:
         else:
             # converts the response.content to a dict using xmltodict library
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'Envelope.Body.auth-reply.ResultCode'):
+            if pydash.objects.has(resp_dict, "Envelope.Body.auth-reply.ResultCode"):
                 # test if the resp_dict has a Resultcode key this indicates a response from the server
-                if resp_dict['Envelope']['Body']['auth-reply']['ResultCode'] == '0':
+                if resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"] == "0":
                     # Resultcode is 0, the login was successful, the sessionid is saved in memory
-                    self.session_id = resp_dict['Envelope']['Body']['auth-reply']['SessionId']
-                    return resp_dict['Envelope']['Body']['auth-reply']['ResultCode']
+                    self.session_id = resp_dict["Envelope"]["Body"]["auth-reply"]["SessionId"]
+                    return resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"]
 
-                elif resp_dict['Envelope']['Body']['auth-reply']['ResultCode'] == '6':
+                elif resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"] == "6":
                     # Resultcode is 6, the login was unsuccessful, returns false and the request.post object
                     return response
 
@@ -186,7 +223,9 @@ class Client:
                 # other responses will need to be worked out and coded for
                 return response
 
-    def logout_netconf(self, protocol='http', port='18080', cms_node_ip='localhost', uri='', http_timeout=1):
+    def logout_netconf(
+        self, protocol="http", port="18080", cms_node_ip="localhost", uri="", http_timeout=1
+    ):
         """
         Description
         -----------
@@ -230,9 +269,14 @@ class Client:
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        if protocol == 'http':
+        if protocol == "http":
             try:
-                response = requests.post(url=self.cms_netconf_url, headers=self.headers, data=payload, timeout=http_timeout)
+                response = requests.post(
+                    url=self.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=http_timeout,
+                )
             except requests.exceptions.Timeout as e:
                 # debating between exit and raise will update in future
                 raise e
@@ -247,15 +291,15 @@ class Client:
         else:
             # converts the response.content to a dict using xmltodict library
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'Envelope.Body.auth-reply.ResultCode'):
+            if pydash.objects.has(resp_dict, "Envelope.Body.auth-reply.ResultCode"):
                 # test if the resp_dict has a Resultcode key this indicates a response from the server
-                if resp_dict['Envelope']['Body']['auth-reply']['ResultCode'] == '0':
+                if resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"] == "0":
                     # Resultcode is 0, the logout was successful,
                     # TODO: Research how to correctly implement a __del__ for a cmsnbiclient instance
                     # it will also return the ResultCode
                     self.session_id = None
-                    return '0'
-                elif resp_dict['Envelope']['Body']['auth-reply']['ResultCode'] == '2':
+                    return "0"
+                elif resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"] == "2":
                     # Resultcode is 2, the logout was unsuccessful, this means that the one of the required variables were incorrect,
                     # (session_id or username)
                     return response
@@ -266,7 +310,7 @@ class Client:
                 # other responses will need to be worked out and coded for
                 return response
 
-    def update_config(self, pass_wd='', user_nm='', cms_node_ip='', cms_node_name=''):
+    def update_config(self, pass_wd="", user_nm="", cms_node_ip="", cms_node_name=""):
         """
         Description
         ___________
@@ -289,28 +333,30 @@ class Client:
         :return: update_config() currently does not return any objects
         """
         cwd = os.getcwd()
-        cf_path = os.path.join(cwd, '../cms_nbi_config.json')
+        cf_path = os.path.join(cwd, "../cms_nbi_config.json")
 
         def config_file_updater(data=self.cms_nbi_config, config_file_path=cf_path):
             # function to check if the cms_nbi_config.json file exist in the local dir
             # if it doesn't it will dump the default config to the cms_nbi_config.json file in local dir
-            with open(config_file_path, 'w') as config_file:
+            with open(config_file_path, "w") as config_file:
                 json.dump(data, config_file, indent=5)
 
-        new_cms_node = {'cms_creds': {'pass_wd': pass_wd, 'user_nm': user_nm},
-                        'connection': {'cms_node_ip': cms_node_ip,
-                                       'http_timeout': 500,
-                                       'netconf_http_port': '18080',
-                                       'netconf_https_port': '18443',
-                                       'protocols': {'http': 'http', 'https': 'https'},
-                                       'rest_http_port': '8080'}
-                        }
+        new_cms_node = {
+            "cms_creds": {"pass_wd": pass_wd, "user_nm": user_nm},
+            "connection": {
+                "cms_node_ip": cms_node_ip,
+                "http_timeout": 500,
+                "netconf_http_port": "18080",
+                "netconf_https_port": "18443",
+                "protocols": {"http": "http", "https": "https"},
+                "rest_http_port": "8080",
+            },
+        }
 
         if isinstance(cms_node_name, str) and len(cms_node_name) >= 1:
             # checks to make sure the cms_node_name is a string and at least 1 char long
             # updated the config in memory then on disk
-            self.cms_nbi_config['cms_nodes'][cms_node_name] = new_cms_node
+            self.cms_nbi_config["cms_nodes"][cms_node_name] = new_cms_node
             new_cms_config = {}
-            new_cms_config['config'] = self.cms_nbi_config
+            new_cms_config["config"] = self.cms_nbi_config
             config_file_updater(data=new_cms_config)
-

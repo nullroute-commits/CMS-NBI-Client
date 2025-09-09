@@ -13,19 +13,19 @@ This package provides a modern, async-first implementation with:
 
 from .__version__ import __version__
 
-# Import modern components
-from .core.config import Config, ConnectionConfig, CredentialsConfig, PerformanceConfig
-from .client_v2 import CMSClient, SyncCMSClient
-from .core.logging import setup_logging, get_logger
-
 # Legacy client for backward compatibility
 from .client import Client as LegacyClient
+from .client_v2 import CMSClient, SyncCMSClient
+
+# Import modern components
+from .core.config import Config, ConnectionConfig, CredentialsConfig, PerformanceConfig
+from .core.logging import get_logger, setup_logging
 
 __all__ = [
     "__version__",
     # Modern API
     "CMSClient",
-    "SyncCMSClient", 
+    "SyncCMSClient",
     "Config",
     "ConnectionConfig",
     "CredentialsConfig",

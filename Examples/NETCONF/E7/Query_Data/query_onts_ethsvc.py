@@ -1,17 +1,19 @@
 # IMPORT STATEMENT
-from CMSNBIClient import CMS_NBI_Client
-from CMSNBIClient import Query_E7_Data
+from CMSNBIClient import CMS_NBI_Client, Query_E7_Data
+
 # IMPORT STATEMENT
 
 # Create the CMS_NBI_Client() instance
 client = CMS_NBI_Client()
 
 # Next step is to submit a login request to the CMS server, I will be using an example node
-client.login_netconf(message_id='1',
-                     cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                     cms_user_pass=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['pass_wd'],
-                     cms_node_ip=client.cms_nbi_config['cms_nodes']['example_node']['connection']['cms_node_ip'],
-                     uri=client.cms_nbi_config['cms_netconf_uri']['e7'])
+client.login_netconf(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    cms_user_pass=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["pass_wd"],
+    cms_node_ip=client.cms_nbi_config["cms_nodes"]["example_node"]["connection"]["cms_node_ip"],
+    uri=client.cms_nbi_config["cms_netconf_uri"]["e7"],
+)
 # if the login_netconf() function is successful a tuple with (True, '') is returned  else a response.response object is returned
 # you can use the response library to debug the response.response object
 
@@ -21,11 +23,13 @@ query_e7_data = Query_E7_Data(client)
 # Once the Query_E7_Data object is created we can then call the ont_children_ethsvc() function
 
 # ALL EthSvc on the specified ONT_ID
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1')
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+)
 
 # We can also pass filters to ont_children_ethsvc() function to narrow our query down.
 # --------------LIST OF FILTERS--------------
@@ -45,110 +49,118 @@ query_e7_data.ont_children_ethsvc(message_id='1',
 
 
 # ------BY ADMIN STATE------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'admin': 'enabled'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"admin": "enabled"},
+)
 
 # ------BY EthSvc DESCRIPTION------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'descr': 'example_description'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"descr": "example_description"},
+)
 
 # ------BY SvcTagAction ID------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'tag-action':
-                                                   {'type': 'SvcTagAction',
-                                                    'id': {'svctagaction': '1'}}})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"tag-action": {"type": "SvcTagAction", "id": {"svctagaction": "1"}}},
+)
 
 # ------BY BANDWIDTH PROFILE ID------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'bw-prof':
-                                                   {'type': 'BwProf',
-                                                    'id': {'bwprof': '1'}}})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"bw-prof": {"type": "BwProf", "id": {"bwprof": "1"}}},
+)
 
 # ------BY OUTER VLAN TAG------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'out-tag': '2'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"out-tag": "2"},
+)
 
 # ------BY INNER VLAN TAG------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'in-tag': '2'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"in-tag": "2"},
+)
 
 # ------BY MULTICAST PROFILE ID------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'mcast-prof': {'type': 'McastProf',
-                                                              'id': {'mcastprof': '1'}}})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"mcast-prof": {"type": "McastProf", "id": {"mcastprof": "1"}}},
+)
 
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'mcast-prof': None})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"mcast-prof": None},
+)
 
 
 # ------BY PON COS------
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'pon-cos': 'derived'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"pon-cos": "derived"},
+)
 
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'pon-cos': 'cos-1'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"pon-cos": "cos-1"},
+)
 
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'pon-cos': 'user-1'})
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"pon-cos": "user-1"},
+)
 
-query_e7_data.ont_children_ethsvc(message_id='1',
-                                  cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                                  network_nm='NTWK-Example_Name',
-                                  http_timeout=1,
-                                  ont_id='1',
-                                  attr_filter={'pon-cos': 'fixed'})
-
-
-
-
-
-
-
-
-
-
-
+query_e7_data.ont_children_ethsvc(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    http_timeout=1,
+    ont_id="1",
+    attr_filter={"pon-cos": "fixed"},
+)

@@ -1,11 +1,17 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
+import random
+import requests
+import xmltodict
+
+# Additional imports if needed  
+# import pydash  # Note: pydash is not in dependencies
+from ..client import Client  # Import Client from relative path to avoid circular import
+
 # IMPORT STATEMENTS
 
 
-class Update():
-
-    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
+class Update:
+    def __init__(self, client_object: Client, network_nm: str = "", http_timeout: int = 1):
         """
         Description
         -----------
@@ -33,15 +39,21 @@ class Update():
         if isinstance(client_object, Client):
             pass
         else:
-            raise ValueError(f"""Update() accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)} was passed instead""")
+            raise ValueError(
+                f"""Update() accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)} was passed instead"""
+            )
         self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
         if isinstance(self.client_object.cms_netconf_url, str):
-            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
+            if (
+                self.client_object.cms_nbi_config["cms_netconf_uri"]["e7"]
+                in self.client_object.cms_netconf_url
+            ):
                 pass
             else:
                 raise ValueError(
-                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
+                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}"""
+                )
         else:
             raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
         # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
@@ -78,14 +90,33 @@ class Update():
 
     @property
     def headers(self):
-        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                'User-Agent': f'CMSNBICLIENT-{self.cms_user_nm}'}
+        return {
+            "Content-Type": "text/xml;charset=ISO-8859-1",
+            "User-Agent": f"CMSNBICLIENT-{self.cms_user_nm}",
+        }
 
     @property
     def cms_user_nm(self):
         return self.client_object.cms_user_nm
 
-    def ont(self, ont_id: str ='', admin_state: str ='', ont_sn: str ='', reg_id: str ='', sub_id: str ='', ont_desc: str ='', ontpwe3prof_id: str ='', ontprof_id: str ='', us_sdber_rate: str ='', low_rx_opt_pwr_ne_thresh: str ='', high_rx_opt_pwr_ne_thresh: str ='', battery_present: str ='', pse_max_power_budget: str ='', poe_class_control: str ='', replace_sn: str ='0'):
+    def ont(
+        self,
+        ont_id: str = "",
+        admin_state: str = "",
+        ont_sn: str = "",
+        reg_id: str = "",
+        sub_id: str = "",
+        ont_desc: str = "",
+        ontpwe3prof_id: str = "",
+        ontprof_id: str = "",
+        us_sdber_rate: str = "",
+        low_rx_opt_pwr_ne_thresh: str = "",
+        high_rx_opt_pwr_ne_thresh: str = "",
+        battery_present: str = "",
+        pse_max_power_budget: str = "",
+        poe_class_control: str = "",
+        replace_sn: str = "0",
+    ):
         """
         Description
         -----------
@@ -164,38 +195,45 @@ class Update():
         # before using xmltodict.unparse to convert it to a xml str
         par_inputs = vars()
 
-        if isinstance(par_inputs['ont_id'], str):
-            if par_inputs['ont_id'].isdigit and not par_inputs['ont_id'] == '0':
+        if isinstance(par_inputs["ont_id"], str):
+            if par_inputs["ont_id"].isdigit and not par_inputs["ont_id"] == "0":
                 pass
             else:
-                raise ValueError(f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR BETWEEN 1 and 64000000""")
+                raise ValueError(
+                    f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR BETWEEN 1 and 64000000"""
+                )
         # APPLYING STRUCTURE TO THE PROVIDED PARAMETERS BEFORE PARSING, THIS IS DESIGN SO XMLTODICT CAN UNPARSE THE DICT INTO THE CORRECT XML FORMAT
-        change_var = {'admin': par_inputs['admin_state'],
-                      'battery-present': par_inputs['battery_present'],
-                      'descr': par_inputs['ont_desc'],
-                      'high-rx-opt-pwr-ne-thresh': par_inputs['high_rx_opt_pwr_ne_thresh'],
-                      'low-rx-opt-pwr-ne-thresh': par_inputs['low_rx_opt_pwr_ne_thresh'],
-                      'ontprof': {'id': {'ontprof': par_inputs['ontprof_id']}, 'type': 'OntProf'},
-                      'poe-class-control': par_inputs['poe_class_control'],
-                      'pse-max-power-budget': par_inputs['pse_max_power_budget'],
-                      'pwe3prof': {'id': {'ontpwe3prof': par_inputs['ontpwe3prof_id']}, 'type': 'OntPwe3Prof'},
-                      'reg-id': par_inputs['reg_id'],
-                      'serno': par_inputs['ont_sn'],
-                      'subscr-id': par_inputs['sub_id'],
-                      'us-sdber-rate': par_inputs['us_sdber_rate'],
-                      'linked-pon': par_inputs['replace_sn']}
+        change_var = {
+            "admin": par_inputs["admin_state"],
+            "battery-present": par_inputs["battery_present"],
+            "descr": par_inputs["ont_desc"],
+            "high-rx-opt-pwr-ne-thresh": par_inputs["high_rx_opt_pwr_ne_thresh"],
+            "low-rx-opt-pwr-ne-thresh": par_inputs["low_rx_opt_pwr_ne_thresh"],
+            "ontprof": {"id": {"ontprof": par_inputs["ontprof_id"]}, "type": "OntProf"},
+            "poe-class-control": par_inputs["poe_class_control"],
+            "pse-max-power-budget": par_inputs["pse_max_power_budget"],
+            "pwe3prof": {
+                "id": {"ontpwe3prof": par_inputs["ontpwe3prof_id"]},
+                "type": "OntPwe3Prof",
+            },
+            "reg-id": par_inputs["reg_id"],
+            "serno": par_inputs["ont_sn"],
+            "subscr-id": par_inputs["sub_id"],
+            "us-sdber-rate": par_inputs["us_sdber_rate"],
+            "linked-pon": par_inputs["replace_sn"],
+        }
         # REMOVING ANY Key/Value pair that contains an empty value
-        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
+        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if (vdata)])
         # REMOVING ANY KEY/VALUE pairs where the lowest value is empty
         # FOR link-pon it sets it to None if the value is 1(True)
-        if not change_var['ontprof']['id']['ontprof']:
-            change_var.pop('ontprof')
-        if not change_var['pwe3prof']['id']['ontpwe3prof']:
-            change_var.pop('pwe3prof')
-        if change_var['linked-pon'] == '1':
-            change_var['linked-pon'] = None
+        if not change_var["ontprof"]["id"]["ontprof"]:
+            change_var.pop("ontprof")
+        if not change_var["pwe3prof"]["id"]["ontpwe3prof"]:
+            change_var.pop("pwe3prof")
+        if change_var["linked-pon"] == "1":
+            change_var["linked-pon"] = None
         else:
-            change_var.pop('linked-pon')
+            change_var.pop("linked-pon")
 
         chang_xml = xmltodict.unparse(change_var, full_document=False)
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -219,10 +257,15 @@ class Update():
                             </rpc>
                             </soapenv:Body>
                         </soapenv:Envelope>"""
-        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property 
-        if 'https' not in self.client_object.cms_netconf_url[:5]:
+        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
+        if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
                 raise e
         else:
@@ -235,16 +278,39 @@ class Update():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def ont_geth(self, ont_id: str = '', ontethge: str = '', admin_state: str = '', subscr_id: str = '',
-                descr: str = '', ontethportgos: str = '', duplex: str = '', ethsecprof: str = '', disable_on_batt: str = '',
-                link_oam_events: str = '', accept_link_oam_loopbacks: str = '', dhcp_limit_override: str = '', force_dot1x: str = '',
-                role: str = '', dscpmap: str = '', speed: str = '', poe_power_priority: str = '', poe_class_control: str = '',
-                voice_policy_profile: str = '', ppte_power_control: str = '', policing: str = ''):
+    def ont_geth(
+        self,
+        ont_id: str = "",
+        ontethge: str = "",
+        admin_state: str = "",
+        subscr_id: str = "",
+        descr: str = "",
+        ontethportgos: str = "",
+        duplex: str = "",
+        ethsecprof: str = "",
+        disable_on_batt: str = "",
+        link_oam_events: str = "",
+        accept_link_oam_loopbacks: str = "",
+        dhcp_limit_override: str = "",
+        force_dot1x: str = "",
+        role: str = "",
+        dscpmap: str = "",
+        speed: str = "",
+        poe_power_priority: str = "",
+        poe_class_control: str = "",
+        voice_policy_profile: str = "",
+        ppte_power_control: str = "",
+        policing: str = "",
+    ):
         """
         Description
         -----------
@@ -284,10 +350,10 @@ class Update():
                                     applied to a port. This allows the same security profile to be reused and also
                                     allows the required DOCSIS provisioning where the lease limit is specified
                                     individually on the port on which the new service will be added.
-                                    ['none','0-255'] 
+                                    ['none','0-255']
 
         :param force_dot1x: An 802.1x supplicant attribute to force the supplicant to be unauthorized or
-                            authorized until the force attribute is set to none. 
+                            authorized until the force attribute is set to none.
                             ['none', 'true', 'false']
 
         :param role:    Expects ['uni' or 'inni']
@@ -306,8 +372,8 @@ class Update():
                         only when there is no Ethernet service currently provisioned on the port. Only
                         one single video VLAN per INNI port is supported. One PPPoE session per
                         G.fast node port. Four DHCP sessions per G.fast node port
-        
-        :param dscpmap:  identifies the global DSCP Map profile ID (1 to 10). 
+
+        :param dscpmap:  identifies the global DSCP Map profile ID (1 to 10).
 
         :param speed: Expects ['auto', '1000'] Identifies the data rate of the Ethernet port, setting to 1000 will disable auto negotiation
 
@@ -328,7 +394,7 @@ class Update():
                                     when either PoE is enabled or when the Voice Policy is defined.
 
 
-        :param policing: expects ['enable', 'disable']  
+        :param policing: expects ['enable', 'disable']
                         Ingress rate limiting is sometimes called traffic policing because it ensures ingress traffic
                         does not exceed a specified bit rate, keeping a subscriber from exceeding their data rate
                         contract. Rate limiting applies to traffic entering an E-Series network from a downstream
@@ -340,48 +406,52 @@ class Update():
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
 
-         # using change_var as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
+        # using change_var as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
         # before using xmltodict.unparse to convert it to a xml str
         par_inputs = vars()
 
-        if isinstance(par_inputs['ont_id'], str):
-            if par_inputs['ont_id'].isdigit and not par_inputs['ont_id'] == '0':
+        if isinstance(par_inputs["ont_id"], str):
+            if par_inputs["ont_id"].isdigit and not par_inputs["ont_id"] == "0":
                 pass
             else:
-                raise ValueError(f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR BETWEEN 1 and 64000000""")
+                raise ValueError(
+                    f"""{par_inputs['ont_id']} NEEDS TO BE A INT STR BETWEEN 1 and 64000000"""
+                )
         # APPLYING STRUCTURE TO THE PROVIDED PARAMETERS BEFORE PARSING, THIS IS DESIGN SO XMLTODICT CAN UNPARSE THE DICT INTO THE CORRECT XML FORMAT
-        change_var = {'accept-link-oam-loopbacks': par_inputs['accept_link_oam_loopbacks'],
-                    'admin': par_inputs['admin_state'],
-                    'descr': par_inputs['descr'],
-                    'dhcp-limit-override': par_inputs['dhcp_limit_override'],
-                    'disable-on-batt': par_inputs['disable_on_batt'],
-                    'duplex': par_inputs['duplex'],
-                    'force-dot1x': par_inputs['force_dot1x'],
-                    'gos': {'id': {'ontethportgos': par_inputs['ontethportgos']}, 'type': 'OntEthPortGos'},
-                    'link-oam-events': par_inputs['link_oam_events'],
-                    'pbit-map': {'id': {'dscpmap': par_inputs['dscpmap']}, 'type': 'DscpMap'},
-                    'poe-class-control': par_inputs['poe_class_control'],
-                    'poe-power-priority': par_inputs['poe_power_priority'],
-                    'policing':  par_inputs['policing'],
-                    'ppte-power-control': par_inputs['ppte_power_control'],
-                    'role': par_inputs['role'],
-                    'sec': {'id': {'ethsecprof': par_inputs['ethsecprof']}, 'type': 'EthSecProf'},
-                    'speed': par_inputs['speed'],
-                    'subscr-id': par_inputs['subscr-id']}
+        change_var = {
+            "accept-link-oam-loopbacks": par_inputs["accept_link_oam_loopbacks"],
+            "admin": par_inputs["admin_state"],
+            "descr": par_inputs["descr"],
+            "dhcp-limit-override": par_inputs["dhcp_limit_override"],
+            "disable-on-batt": par_inputs["disable_on_batt"],
+            "duplex": par_inputs["duplex"],
+            "force-dot1x": par_inputs["force_dot1x"],
+            "gos": {"id": {"ontethportgos": par_inputs["ontethportgos"]}, "type": "OntEthPortGos"},
+            "link-oam-events": par_inputs["link_oam_events"],
+            "pbit-map": {"id": {"dscpmap": par_inputs["dscpmap"]}, "type": "DscpMap"},
+            "poe-class-control": par_inputs["poe_class_control"],
+            "poe-power-priority": par_inputs["poe_power_priority"],
+            "policing": par_inputs["policing"],
+            "ppte-power-control": par_inputs["ppte_power_control"],
+            "role": par_inputs["role"],
+            "sec": {"id": {"ethsecprof": par_inputs["ethsecprof"]}, "type": "EthSecProf"},
+            "speed": par_inputs["speed"],
+            "subscr-id": par_inputs["subscr-id"],
+        }
         # TODO: Research correct voice policy method as im not finding anything online for the correct formating
         # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
-        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
+        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if (vdata)])
         # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
 
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
-        if not pydash.objects.get('gos.id.ontethportgos', change_var):
-            change_var.pop('gos')
-        if not pydash.objects.get('pbit-map.id.dscpmap', change_var):
-            change_var.pop('pbit-map')
-        if not pydash.objects.get('sec.id.ethsecprof', change_var):
-            change_var.pop('sec')
+        if not pydash.objects.get("gos.id.ontethportgos", change_var):
+            change_var.pop("gos")
+        if not pydash.objects.get("pbit-map.id.dscpmap", change_var):
+            change_var.pop("pbit-map")
+        if not pydash.objects.get("sec.id.ethsecprof", change_var):
+            change_var.pop("sec")
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
-        
+
         chang_xml = xmltodict.unparse(change_var, full_document=False)
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -408,10 +478,15 @@ class Update():
                                     </rpc>
                                     </soapenv:Body>
                                 </soapenv:Envelope>"""
-        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property 
-        if 'https' not in self.client_object.cms_netconf_url[:5]:
+        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
+        if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
                 raise e
         else:
@@ -424,13 +499,35 @@ class Update():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '', ontethany: str = '', ethsvc: str = '', admin_state: str = '', descr: str = '', svctagaction_id: str = '', bwprof_id: str = '', 
-                    out_tag: str = '', inner_tag: str = '', mcast_prof_id: str = '', pon_cos: str = '', us_cir_override: str = '', us_pir_override: str = '', ds_pir_override: str = '', hot_swap: str = '', pppoe_force_discard: str = ''):
+    def ont_ethsvc(
+        self,
+        ont_id: str = "",
+        ontslot: str = "",
+        ontethany: str = "",
+        ethsvc: str = "",
+        admin_state: str = "",
+        descr: str = "",
+        svctagaction_id: str = "",
+        bwprof_id: str = "",
+        out_tag: str = "",
+        inner_tag: str = "",
+        mcast_prof_id: str = "",
+        pon_cos: str = "",
+        us_cir_override: str = "",
+        us_pir_override: str = "",
+        ds_pir_override: str = "",
+        hot_swap: str = "",
+        pppoe_force_discard: str = "",
+    ):
         """
         Description
         -----------
@@ -452,8 +549,8 @@ class Update():
 
         :param svctagaction_id: Identifies the ID of a predefined global service tag action (1 to 255).
 
-        :param bwprof_id: Identifies the ID of a global or local Ethernet bandwidth profile (1 to 300). 
-                          The CMS XML NBI may be used to provision services using local profile IDs. 
+        :param bwprof_id: Identifies the ID of a global or local Ethernet bandwidth profile (1 to 300).
+                          The CMS XML NBI may be used to provision services using local profile IDs.
                           Previously, the CMS XML NBI accepted only global profile IDs.
                           The local ID is specified using the syntax "local:X" where "X" is the local profile ID number.
 
@@ -461,10 +558,10 @@ class Update():
 
         :param inner_tag_id: "inner"(C-TAG) Dot1q(802.1Q) VLAN IDs (2 to 4093, excluding any reserved VLAN IDs). Except for 1002-1005 which are reserved for E7 operation.
 
-        :param mcast_prof_id: Identifies an ID of a pre-defined global or local multicast profile (1 to 32). 
-                              The CMS XML NBI may be used to provision services using local profile IDs. 
+        :param mcast_prof_id: Identifies an ID of a pre-defined global or local multicast profile (1 to 32).
+                              The CMS XML NBI may be used to provision services using local profile IDs.
                               Previously, the CMS XML NBI accepted only global profile IDs.
-                              The local ID is specified using the syntax "local:X" where "X" is the local profile ID number. 
+                              The local ID is specified using the syntax "local:X" where "X" is the local profile ID number.
 
         :param pon_cos_id: Class of Service applied to the service:
                              derived is the default behavior for services
@@ -544,34 +641,39 @@ class Update():
 
         :return: ont_ethsvc() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
-        par_input = vars()        
+        par_input = vars()
         # using change_var_list as a tmp list to filter out any ont vars that are not being changed, ie the empty vars will be removed from the dictionary
         # before using xmltodict.unparse to convert it to a xml str
         # APPLYING STRUCTURE TO THE PROVIDED PARAMETERS BEFORE PARSING, THIS IS DESIGN SO XMLTODICT CAN UNPARSE THEM INTO THE CORRECT XML FORMAT
-        change_var = {'admin': par_input['admin_state'],
-                    'descr': par_input['descr'],
-                    'tag-action': {'type': 'SvcTagAction', 'id': {'svctagaction': par_input['svctagaction_id']}},
-                    'bw-prof': {'type': 'BwProf', 'id': {'bwprof': par_input['bwprof_id']}},
-                    'out-tag': par_input['out_tag'],
-                    'in-tag': par_input['inner_tag'],
-                    'mcast-prof': {'type': 'McastProf', 'id': {'mcastprof': par_input['mcast_prof_id']}},
-                    'pon-cos': par_input['pon_cos'],
-                    'us-cir-override': par_input['us_cir_override'],
-                    'us-pir-override': par_input['us_pir_override'],
-                    'ds-pir-override': par_input['ds_pir_override'],
-                    'hot-swap': par_input['hot_swap'],
-                    'pppoe-force-discard': par_input['pppoe_force_discard']}
+        change_var = {
+            "admin": par_input["admin_state"],
+            "descr": par_input["descr"],
+            "tag-action": {
+                "type": "SvcTagAction",
+                "id": {"svctagaction": par_input["svctagaction_id"]},
+            },
+            "bw-prof": {"type": "BwProf", "id": {"bwprof": par_input["bwprof_id"]}},
+            "out-tag": par_input["out_tag"],
+            "in-tag": par_input["inner_tag"],
+            "mcast-prof": {"type": "McastProf", "id": {"mcastprof": par_input["mcast_prof_id"]}},
+            "pon-cos": par_input["pon_cos"],
+            "us-cir-override": par_input["us_cir_override"],
+            "us-pir-override": par_input["us_pir_override"],
+            "ds-pir-override": par_input["ds_pir_override"],
+            "hot-swap": par_input["hot_swap"],
+            "pppoe-force-discard": par_input["pppoe_force_discard"],
+        }
         # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
-        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if(vdata)])
+        change_var = dict([(vkey, vdata) for vkey, vdata in change_var.items() if (vdata)])
         # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
 
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
-        if not pydash.objects.get('bw-prof.id.bwprof', change_var):
-            change_var.pop('bw-prof')
-        if not pydash.objects.get('tag-action.id.svctagaction', change_var):
-            change_var.pop('tag-action')
-        if not pydash.objects.get('mcast-prof.id.mcastprof', change_var):
-            change_var.pop('mcast-prof')
+        if not pydash.objects.get("bw-prof.id.bwprof", change_var):
+            change_var.pop("bw-prof")
+        if not pydash.objects.get("tag-action.id.svctagaction", change_var):
+            change_var.pop("tag-action")
+        if not pydash.objects.get("mcast-prof.id.mcastprof", change_var):
+            change_var.pop("mcast-prof")
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
 
         chang_xml = xmltodict.unparse(change_var, full_document=False)
@@ -600,11 +702,16 @@ class Update():
                                             </rpc>
                                             </soapenv:Body>
                                         </soapenv:Envelope>"""
-        
-        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property 
-        if 'https' not in self.client_object.cms_netconf_url[:5]:
+
+        # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
+        if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload, timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
                 raise e
         else:
@@ -617,7 +724,11 @@ class Update():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response

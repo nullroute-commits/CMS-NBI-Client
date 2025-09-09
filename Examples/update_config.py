@@ -1,5 +1,6 @@
 # IMPORT STATEMENT
 from CMSNBIClient import CMS_NBI_Client
+
 # IMPORT STATEMENT
 
 # Create the CMS_NBI_Client() instance
@@ -22,7 +23,12 @@ client = CMS_NBI_Client()
 #                   'region': '/restnbi/region',
 #                   'topology': '/restnbi/toplinks'}}
 # Now let's add a new CMS node to the running config
-client.update_config(pass_wd='example_pass', user_nm='example_user', cms_node_name='example_node', cms_node_ip='cms.example.com')
+client.update_config(
+    pass_wd="example_pass",
+    user_nm="example_user",
+    cms_node_name="example_node",
+    cms_node_ip="cms.example.com",
+)
 # UPDATED CONFIG after calling update_config()
 # {'cms_netconf_uri': {'ae_ont': '/cmsae/ae/netconf',
 #                      'c7/e3/e5-100': '/cmsweb/nc',

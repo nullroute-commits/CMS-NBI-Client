@@ -1,11 +1,17 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
+import random
+import requests
+import xmltodict
+
+# Additional imports if needed  
+# import pydash  # Note: pydash is not in dependencies
+from ..client import Client  # Import Client from relative path to avoid circular import
+
 # IMPORT STATEMENTS
 
 
-class Query():
-
-    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
+class Query:
+    def __init__(self, client_object: Client, network_nm: str = "", http_timeout: int = 1):
         """
         Description
         -----------
@@ -38,15 +44,20 @@ class Query():
             pass
         else:
             raise ValueError(
-                f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(client_object)}""")
+                f"""Query_E7_Data accepts a instance of CMS_NBI_Client, a instance of {type(client_object)}"""
+            )
         self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
         if isinstance(self.client_object.cms_netconf_url, str):
-            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
+            if (
+                self.client_object.cms_nbi_config["cms_netconf_uri"]["e7"]
+                in self.client_object.cms_netconf_url
+            ):
                 pass
             else:
                 raise ValueError(
-                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
+                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}"""
+                )
         else:
             raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
         # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
@@ -83,8 +94,10 @@ class Query():
 
     @property
     def headers(self):
-        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+        return {
+            "Content-Type": "text/xml;charset=ISO-8859-1",
+            "User-Agent": f"CMS_NBI_CONNECT-{self.cms_user_nm}",
+        }
 
     @property
     def cms_user_nm(self):
@@ -121,12 +134,15 @@ class Query():
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -139,12 +155,16 @@ class Query():
         else:
             resp_dict = xmltodict.parse(response.content)
 
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def system_children(self, after_filter={'': ''}):
+    def system_children(self, after_filter={"": ""}):
         """
         Description
         -----------
@@ -160,7 +180,7 @@ class Query():
 
         :return: system_children() returns a requests.models.Response object on a failed call, and a nested dict on a successful call
         """
-        if 'type' in after_filter.keys():
+        if "type" in after_filter.keys():
             _after = f"""\n<after>\n<type>{after_filter['type']}</type>\n<id>\n<{after_filter['type'].lower()}>{after_filter['id']}<{'/' + after_filter['type'].lower()}>\n</id>\n</after>\n"""
         else:
             _after = ""
@@ -187,12 +207,15 @@ class Query():
         </soapenv:Body>
         </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -207,16 +230,19 @@ class Query():
             resp_dict = xmltodict.parse(response.content)
             # the pydash.object.has method is called to test if the path provided exist,
             # in this case its looking for 'more' as being apart of the path, this indicated there are more children to query
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more"
+            ):
                 # set the local variable resp_dict to just the data contained in the child xml tag
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 # this portion of the if statement parses the last value in the dictionary and extracts the <type> and <id> tag values
                 last_object_type = [x for x in resp_dict[len(resp_dict) - 1].items()]
                 id_key = [key for key in last_object_type[1][1].keys()][0]
                 _after_filter_ = {}
-                _after_filter_['type'] = last_object_type[0][1]
-                _after_filter_['id'] = pydash.get(last_object_type[1][1][id_key], '#text')
+                _after_filter_["type"] = last_object_type[0][1]
+                _after_filter_["id"] = pydash.get(last_object_type[1][1][id_key], "#text")
                 # this portion of the if statement parses the last value in the dictionary and extracts the <type> and <id> tag values
                 # this try/except clause test the objectresp_system_childrenvariable, if it doesnt exist it is created and updated
                 try:
@@ -227,8 +253,12 @@ class Query():
                     self.resp_system_children.extend(resp_dict)
                 # Recursive method for pulling the rest of the children
                 return self.system_children(after_filter=_after_filter_)
-            elif pydash.objects.has(resp_dict,'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 try:
                     if isinstance(self.resp_system_children, list):
                         self.resp_system_children.extend(resp_dict)
@@ -244,7 +274,7 @@ class Query():
             else:
                 return response
 
-    def system_children_discont(self,after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_discont(self, after_filter={"": ""}, attr_filter={"": ""}):
         """
         Description
         -----------
@@ -263,7 +293,7 @@ class Query():
 
         :return: system_children_discont() will return a requests.models.Response object on a failed call, and a list of nested dict on a successful call
         """
-        if 'discont' in after_filter.keys():
+        if "discont" in after_filter.keys():
             after_filter = f"""<after>
                                 <type>DiscOnt</type>
                                     <id>
@@ -271,18 +301,45 @@ class Query():
                                     </id>
                                 </after>"""
         else:
-            after_filter = ''
+            after_filter = ""
 
-        valid_attr = ['op-stat', 'crit', 'maj', 'min', 'warn', 'info', 'derived-states', 'reg-id', 'prov-reg-id', 'pon',
-                      'model', 'vendor', 'clei', 'ont', 'subscr-id', 'descr', 'curr-sw-vers', 'alt-sw-vers',
-                      'curr-committed', 'mfg-serno', 'product-code', 'curr-cust-vers', 'alt-cust-vers', 'onu-mac',
-                      'mta-mac', 'link-permit-status']
-        if '' not in attr_filter.keys():
+        valid_attr = [
+            "op-stat",
+            "crit",
+            "maj",
+            "min",
+            "warn",
+            "info",
+            "derived-states",
+            "reg-id",
+            "prov-reg-id",
+            "pon",
+            "model",
+            "vendor",
+            "clei",
+            "ont",
+            "subscr-id",
+            "descr",
+            "curr-sw-vers",
+            "alt-sw-vers",
+            "curr-committed",
+            "mfg-serno",
+            "product-code",
+            "curr-cust-vers",
+            "alt-cust-vers",
+            "onu-mac",
+            "mta-mac",
+            "link-permit-status",
+        ]
+        if "" not in attr_filter.keys():
             _attr_filter = """<attr-filter>"""
             for attr in attr_filter.items():
                 if attr[0] in valid_attr:
-                    if attr[0] == 'pon':
-                        _attr_filter = _attr_filter + f"""<type>GponPort</type>\n<id>\n<shelf>{attr[1]['shelf']}</shelf>\n<card>{attr[1]['card']}</card>\n<gponport>{attr[1]['gponport']}</gponport>\n</id>\n"""
+                    if attr[0] == "pon":
+                        _attr_filter = (
+                            _attr_filter
+                            + f"""<type>GponPort</type>\n<id>\n<shelf>{attr[1]['shelf']}</shelf>\n<card>{attr[1]['card']}</card>\n<gponport>{attr[1]['gponport']}</gponport>\n</id>\n"""
+                        )
                     else:
                         _attr_filter = _attr_filter + f"""<{attr[0]}>{attr[1]}</{attr[0]}>\n"""
                 else:
@@ -314,12 +371,15 @@ class Query():
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -331,24 +391,32 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
-                after_filter_ = resp_dict[len(resp_dict) - 1]['id']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
+                after_filter_ = resp_dict[len(resp_dict) - 1]["id"]
                 try:
                     if isinstance(self.resp_system_children_discont, list):
                         self.resp_system_children_discont.extend(resp_dict)
                 except:
                     self.resp_system_children_discont = []
                     self.resp_system_children_discont.extend(resp_dict)
-                return self.system_children_discont(after_filter=after_filter_, attr_filter=attr_filter)
-            elif pydash.objects.has(resp_dict,
-                                    'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                return self.system_children_discont(
+                    after_filter=after_filter_, attr_filter=attr_filter
+                )
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 try:
                     if isinstance(self.resp_system_children_discont, list):
-                        for resp in resp_dict: self.resp_system_children_discont.append(resp)
+                        for resp in resp_dict:
+                            self.resp_system_children_discont.append(resp)
                         resp_system_discont = self.resp_system_children_discont
                         del self.resp_system_children_discont
                         return resp_system_discont
@@ -359,8 +427,15 @@ class Query():
                     del self.resp_system_children_discont
                     return resp_system_discont
 
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
-                if resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children'] == None:
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children"
+            ):
+                if (
+                    resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                        "object"
+                    ]["children"]
+                    == None
+                ):
                     try:
                         isinstance(self.resp_system_children_discont, list)
                         resp_system_discont = self.resp_system_children_discont
@@ -374,7 +449,7 @@ class Query():
             else:
                 return response
 
-    def system_children_ontprof(self, after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_ontprof(self, after_filter={"": ""}, attr_filter={"": ""}):
         """
         Description
         -----------
@@ -393,7 +468,7 @@ class Query():
 
         :return: system_children_ontprof() returns a requests.models.Response object on a failed query and a nested dict on a successful query
         """
-        if 'ontprof' in after_filter.keys():
+        if "ontprof" in after_filter.keys():
             _after_filter = f"""<after>
                                 <type>OntProf</type>
                                     <id>
@@ -403,16 +478,31 @@ class Query():
         else:
             _after_filter = """"""
 
-        valid_attr = ['name', 'vendor', 'model', 'pots', 'feth', 'geth', 'hpnaeth', 'ds1', 'rfvid', 'hotrfvid',
-                      'eth-oam-capable', 'convert-mcast-capable', 'rg', 'fb', 'default-to-rg']
-        if '' not in attr_filter.keys():
-            _attr_filter = '''<attr-filter>'''
+        valid_attr = [
+            "name",
+            "vendor",
+            "model",
+            "pots",
+            "feth",
+            "geth",
+            "hpnaeth",
+            "ds1",
+            "rfvid",
+            "hotrfvid",
+            "eth-oam-capable",
+            "convert-mcast-capable",
+            "rg",
+            "fb",
+            "default-to-rg",
+        ]
+        if "" not in attr_filter.keys():
+            _attr_filter = """<attr-filter>"""
             for attr in attr_filter.items():
                 if attr[0] in valid_attr:
-                    _attr_filter = _attr_filter + f'''<{attr[0]}>{attr[1]}</{attr[0]}>'''
-            _attr_filter = _attr_filter + '''</attr-filter>'''
+                    _attr_filter = _attr_filter + f"""<{attr[0]}>{attr[1]}</{attr[0]}>"""
+            _attr_filter = _attr_filter + """</attr-filter>"""
         else:
-            _attr_filter = '<attr-filter></attr-filter>'
+            _attr_filter = "<attr-filter></attr-filter>"
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
                             <rpc message-id="{self.message_id}" nodename="{self.network_nm}" username="{self.cms_user_nm}" sessionid="{self.client_object.session_id}">
@@ -439,12 +529,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -456,21 +549,29 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
-                after_filter_ = resp_dict[len(resp_dict) - 1]['id']
-                _after_filter_ = {'ontprof': f'{after_filter_["ontprof"]["#text"]}'}
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
+                after_filter_ = resp_dict[len(resp_dict) - 1]["id"]
+                _after_filter_ = {"ontprof": f'{after_filter_["ontprof"]["#text"]}'}
                 try:
                     if isinstance(self.resp_system_children_ontprof, list):
                         self.resp_system_children_ontprof.extend(resp_dict)
                 except:
                     self.resp_system_children_ontprof = []
                     self.resp_system_children_ontprof.extend(resp_dict)
-                return self.system_children_ontprof(after_filter=_after_filter_, attr_filter=attr_filter)
-            elif pydash.objects.has(resp_dict,'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                return self.system_children_ontprof(
+                    after_filter=_after_filter_, attr_filter=attr_filter
+                )
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 try:
                     if isinstance(self.resp_system_children_ontprof, list):
                         if len(resp_dict) > 1:
@@ -491,7 +592,7 @@ class Query():
             else:
                 return response
 
-    def system_children_ontpwe3prof(self, after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_ontpwe3prof(self, after_filter={"": ""}, attr_filter={"": ""}):
         """
         Description
         -----------
@@ -510,17 +611,17 @@ class Query():
 
         :return: system_children_ontpwe3prof() returns a requests.models.Response object on a failed query and a list of nested dict on a successful query
         """
-        if '' not in after_filter.keys():
+        if "" not in after_filter.keys():
             pass
         else:
             _after_filter = """"""
 
-        valid_attr = ['name', 'tdm-mode']
-        if '' not in attr_filter.keys():
+        valid_attr = ["name", "tdm-mode"]
+        if "" not in attr_filter.keys():
             _attr_filter = """<attr-filter>"""
             for attr in attr_filter.items():
                 if attr[0] in valid_attr:
-                    _attr_filter = _attr_filter + f'''<{attr[0]}>{attr[1]}</{attr[0]}>'''
+                    _attr_filter = _attr_filter + f"""<{attr[0]}>{attr[1]}</{attr[0]}>"""
             _attr_filter = _attr_filter + """</attr-filter>"""
         else:
             _attr_filter = """<attr-filter></attr-filter>"""
@@ -551,12 +652,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -568,22 +672,29 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
-                after_filter_ = resp_dict[len(resp_dict) - 1]['id']
-                _after_filter_ = {'ontprof': f'{after_filter_["ontprof"]["#text"]}'}
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
+                after_filter_ = resp_dict[len(resp_dict) - 1]["id"]
+                _after_filter_ = {"ontprof": f'{after_filter_["ontprof"]["#text"]}'}
                 try:
                     if isinstance(self.resp_system_children_ontpwe3prof, list):
                         self.resp_system_children_ontpwe3prof.extend(resp_dict)
                 except:
                     self.resp_system_children_ontpwe3prof = []
                     self.resp_system_children_ontpwe3prof.extend(resp_dict)
-                return self.system_children_ontpwe3prof(after_filter=_after_filter_, attr_filter=attr_filter)
-            elif pydash.objects.has(resp_dict,
-                                    'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+                return self.system_children_ontpwe3prof(
+                    after_filter=_after_filter_, attr_filter=attr_filter
+                )
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 try:
                     if isinstance(self.resp_system_children_ontpwe3prof, list):
                         if len(resp_dict) > 1:
@@ -604,7 +715,7 @@ class Query():
             else:
                 return response
 
-    def system_children_vlan(self,after_filter={'': ''}, attr_filter={'': ''}):
+    def system_children_vlan(self, after_filter={"": ""}, attr_filter={"": ""}):
         """
         Description
         -----------
@@ -624,13 +735,15 @@ class Query():
         :return: system_children_vlan() returns a requests.models.Response object on a failed query and a list of nested dict on a successful query
         """
         # After Filter Parser
-        if '' not in after_filter.keys():
-            _after_filter = f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+        if "" not in after_filter.keys():
+            _after_filter = (
+                f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+            )
         else:
             _after_filter = """"""
 
         # Attr-Filter Parser
-        if '' not in attr_filter.keys():
+        if "" not in attr_filter.keys():
             _attr_filter = f"""<attr-filter>{xmltodict.unparse(attr_filter, full_document=False)}</attr-filter>"""
         else:
             _attr_filter = """"""
@@ -661,12 +774,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -678,10 +794,16 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
-                last_entry = {'type': 'Vlan', 'id': {'vlan': resp_dict[len(resp_dict) - 1]['id']['vlan']['#text']}}
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
+                last_entry = {
+                    "type": "Vlan",
+                    "id": {"vlan": resp_dict[len(resp_dict) - 1]["id"]["vlan"]["#text"]},
+                }
                 try:
                     if isinstance(self.resp_system_children_vlan, list):
                         self.resp_system_children_vlan.extend(resp_dict)
@@ -690,10 +812,12 @@ class Query():
                     self.resp_system_children_vlan.extend(resp_dict)
                 return self.system_children_vlan(after_filter=last_entry, attr_filter=attr_filter)
 
-            elif pydash.objects.has(resp_dict,
-                                    'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.child"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 try:
                     if isinstance(self.resp_system_children_vlan, list):
                         if isinstance(resp_dict, list):
@@ -709,7 +833,9 @@ class Query():
                 resp = self.resp_system_children_vlan
                 del self.resp_system_children_vlan
                 return resp
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children"
+            ):
                 if isinstance(self.resp_system_children_vlan, list):
                     resp = self.resp_system_children_vlan
                     del self.resp_system_children_vlan
@@ -719,7 +845,7 @@ class Query():
             else:
                 return response
 
-    def ont_children_ethsvc(self, ont_id='', after_filter={'': ''}, attr_filter={'': ''}):
+    def ont_children_ethsvc(self, ont_id="", after_filter={"": ""}, attr_filter={"": ""}):
         """
         Description
         -----------
@@ -871,12 +997,14 @@ class Query():
                                           attr_filter={'pon-cos': 'fixed'})
         """
 
-        if '' not in after_filter.keys():
-            _after_filter = f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+        if "" not in after_filter.keys():
+            _after_filter = (
+                f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+            )
         else:
             _after_filter = """"""
 
-        if '' not in attr_filter.keys():
+        if "" not in attr_filter.keys():
             _attr_filter = f"""<attr-filter>{xmltodict.unparse(attr_filter, full_document=False)}</attr-filter>"""
         else:
             _attr_filter = """<attr-filter></attr-filter>"""
@@ -909,12 +1037,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -926,25 +1057,37 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more'):
-                resp_dict = \
-                resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']['children']['child']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]["child"]
                 last_entry = resp_dict[len(resp_dict) - 1]
-                __after_filter = {'type': last_entry['type'],
-                                  'id': {'ont': last_entry['id']['ont'], 'ontslot': last_entry['id']['ontslot'],
-                                         'ontethany': last_entry['id']['ontethany'],
-                                         'ethsvc': last_entry['id']['ethsvc']['#text']}}
+                __after_filter = {
+                    "type": last_entry["type"],
+                    "id": {
+                        "ont": last_entry["id"]["ont"],
+                        "ontslot": last_entry["id"]["ontslot"],
+                        "ontethany": last_entry["id"]["ontethany"],
+                        "ethsvc": last_entry["id"]["ethsvc"]["#text"],
+                    },
+                }
                 try:
                     if isinstance(self.resp_ont_children_ethsvc, list):
                         self.resp_ont_children_ethsvc.extend(resp_dict)
                 except:
                     self.resp_ont_children_ethsvc = []
                     self.resp_ont_children_ethsvc.extend(resp_dict)
-                return self.ont_children_ethsvc(ont_id=ont_id, after_filter=__after_filter,
-                                                attr_filter=attr_filter)
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object'][
-                    'children']
+                return self.ont_children_ethsvc(
+                    ont_id=ont_id, after_filter=__after_filter, attr_filter=attr_filter
+                )
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object.children"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]["children"]
                 # Trying to catch NONE type objects and not append them to the list
                 if not isinstance(resp_dict, type(None)):
                     try:
@@ -971,7 +1114,7 @@ class Query():
             else:
                 return response
 
-    def ontprof(self, ontprof_id=''):
+    def ontprof(self, ontprof_id=""):
         """
         Description
         -----------
@@ -1009,12 +1152,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1026,12 +1172,16 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def discont(self, ont_sn=''):
+    def discont(self, ont_sn=""):
         """
         Description
         -----------
@@ -1067,12 +1217,15 @@ class Query():
                         </soapenv:Body>
                        </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1084,12 +1237,16 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def ontpwe3prof(self, ontpwe3prof_id='1'):
+    def ontpwe3prof(self, ontpwe3prof_id="1"):
         """
         Description
         -----------
@@ -1127,12 +1284,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1144,12 +1304,16 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def vlan(self, vlan_id='1'):
+    def vlan(self, vlan_id="1"):
         """
         Description
         -----------
@@ -1187,12 +1351,15 @@ class Query():
                         </soapenv:Body>
                        </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1204,12 +1371,18 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '3', ontethany: str = '1', ethsvc: str = '1'):
+    def ont_ethsvc(
+        self, ont_id: str = "", ontslot: str = "3", ontethany: str = "1", ethsvc: str = "1"
+    ):
         """
         Description
         -----------
@@ -1255,12 +1428,15 @@ class Query():
                                 </soapenv:Body>
                                </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1272,12 +1448,16 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def ont_geth(self, ont_id: str = '', ontethge: str = '1'):
+    def ont_geth(self, ont_id: str = "", ontethge: str = "1"):
         """
         Description
         -----------
@@ -1319,12 +1499,15 @@ class Query():
                                         </soapenv:Body>
                                        </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1336,12 +1519,16 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def show_ont(self, action_args={' ': ''}, after_filter={' ': ''}):
+    def show_ont(self, action_args={" ": ""}, after_filter={" ": ""}):
         """
         Description
         -----------
@@ -1425,7 +1612,7 @@ class Query():
                                http_timeout=5,
                                action_args={'ont': '1'})
         """
-        if ' ' not in after_filter.keys():
+        if " " not in after_filter.keys():
             _after_filter = f"""<after>
                                     <type>Ont</type>
                                     <id>
@@ -1435,13 +1622,15 @@ class Query():
         else:
             _after_filter = """"""
 
-        valid_action_args = ['admin', 'serno', 'reg-id', 'subscr-id', 'pon', 'ontprof', 'ont']
-        if ' ' not in action_args.keys():
+        valid_action_args = ["admin", "serno", "reg-id", "subscr-id", "pon", "ontprof", "ont"]
+        if " " not in action_args.keys():
             _action_args = """"""
             for arg in action_args.items():
                 if arg[0] in valid_action_args:
-                    if arg[0] == 'pon':
-                        _action_args = _action_args + f"""<linked-pon>
+                    if arg[0] == "pon":
+                        _action_args = (
+                            _action_args
+                            + f"""<linked-pon>
                                                           <type>GponPort</type>
                                                           <id>
                                                           <shelf>{arg[1]['shelf']}</shelf>
@@ -1449,20 +1638,27 @@ class Query():
                                                           <gponport>{arg[1]['gponport']}</gponport>
                                                           </id>
                                                           </linked-pon>"""
-                    elif arg[0] == 'ontprof':
-                        _action_args = _action_args + f"""<ontprof>
+                        )
+                    elif arg[0] == "ontprof":
+                        _action_args = (
+                            _action_args
+                            + f"""<ontprof>
                                                           <type>OntProf</type>
                                                           <id>
                                                           <ontprof>{arg[1]}</ontprof>
                                                           </id>
                                                           </ontprof>"""
-                    elif arg[0] == 'ont':
-                        _action_args = _action_args + f"""<ont>
+                        )
+                    elif arg[0] == "ont":
+                        _action_args = (
+                            _action_args
+                            + f"""<ont>
                                                           <type>Ont</type>
                                                           <id>
                                                           <ont>{arg[1]}</ont>
                                                           </id>
                                                           </ont>"""
+                        )
                     else:
                         _action_args = _action_args + f"""<{arg[0]}>{arg[1]}</{arg[0]}>"""
         else:
@@ -1482,12 +1678,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1499,19 +1698,27 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
-                _after_filter_ = resp_dict['get']['object']['id']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"][
+                    "action-reply"
+                ]["match"]
+                _after_filter_ = resp_dict["get"]["object"]["id"]
                 try:
                     if isinstance(self.resp_show_ont, list):
                         self.resp_show_ont.append(resp_dict)
                 except:
                     self.resp_show_ont = []
                     self.resp_show_ont.append(resp_dict)
-                return self.show_ont( after_filter=_after_filter_, action_args=action_args)
+                return self.show_ont(after_filter=_after_filter_, action_args=action_args)
 
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"][
+                    "action-reply"
+                ]["match"]
                 try:
                     if isinstance(self.resp_show_ont, list):
                         self.resp_show_ont.append(resp_dict)
@@ -1525,7 +1732,9 @@ class Query():
                     del self.resp_show_ont
                     return resp_show_ont
 
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply'):
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply"
+            ):
                 try:
                     if isinstance(self.resp_show_ont, list):
                         resp_show_ont = self.resp_show_ont
@@ -1537,7 +1746,7 @@ class Query():
             else:
                 return response
 
-    def show_dhcp_leases(self, action_args={' ': ''}, after_filter={' ': ''}):
+    def show_dhcp_leases(self, action_args={" ": ""}, after_filter={" ": ""}):
         """
         Description
         -----------
@@ -1556,14 +1765,14 @@ class Query():
 
         :return: show_dhcp_leases() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
         """
-        valid_action_args = ['vlan', 'ontethge', 'ontethfe', 'ethintf', 'gponport']
-        if ' ' not in action_args.keys():
+        valid_action_args = ["vlan", "ontethge", "ontethfe", "ethintf", "gponport"]
+        if " " not in action_args.keys():
             _action_args = """"""
             for arg in action_args.items():
                 if arg[0] in valid_action_args:
-                    if 'vlan' in arg[0]:
+                    if "vlan" in arg[0]:
                         _action_args += f"""<vlan>{arg[1]}</vlan>"""
-                    elif 'ontethge' in arg[0]:
+                    elif "ontethge" in arg[0]:
                         _action_args += f"""<object>
                                                 <type>OntEthGe</type>
                                                 <id>
@@ -1572,7 +1781,7 @@ class Query():
                                                     <ontethge>{arg[1]['ontethge']}</ontethge>
                                                 </id>
                                             </object>"""
-                    elif 'ontethfe' in arg[0]:
+                    elif "ontethfe" in arg[0]:
                         _action_args += f"""<object>
                                                 <type>OntEthFe</type>
                                                 <id>
@@ -1581,7 +1790,7 @@ class Query():
                                                     <ontethfe>{arg[1]['ontethfe']}</ontethfe>
                                                 </id>
                                             </object>"""
-                    elif 'gponport' in arg[0]:
+                    elif "gponport" in arg[0]:
                         _action_args += f"""<object>
                                                 <type>GponPort</type>
                                                 <id>
@@ -1590,7 +1799,7 @@ class Query():
                                                     <gponport>{arg[1]['gponport']}</gponport>
                                                 </id>
                                             </object>"""
-                    elif 'ethintf' in arg[0]:
+                    elif "ethintf" in arg[0]:
                         _action_args += f"""<object>
                                                 <type>EthIntf</type>
                                                 <id>
@@ -1606,8 +1815,10 @@ class Query():
         else:
             _action_args = """"""
 
-        if ' ' not in after_filter.keys():
-            _after_filter = f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+        if " " not in after_filter.keys():
+            _after_filter = (
+                f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+            )
         else:
             _after_filter = """"""
 
@@ -1625,12 +1836,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1642,8 +1856,12 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['entry']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"][
+                    "action-reply"
+                ]["entry"]
                 _after_filter_ = resp_dict[len(resp_dict) - 1]
                 try:
                     if isinstance(self.resp_show_dhcp_leases, list):
@@ -1652,8 +1870,12 @@ class Query():
                     self.resp_show_dhcp_leases = []
                     self.resp_show_dhcp_leases.extend(resp_dict)
                 return self.show_dhcp_leases(action_args=action_args, after_filter=_after_filter_)
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.entry'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['entry']
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.entry"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"][
+                    "action-reply"
+                ]["entry"]
                 try:
                     if isinstance(self.resp_show_dhcp_leases, list):
                         if isinstance(resp_dict, list):
@@ -1672,7 +1894,7 @@ class Query():
             else:
                 return response
 
-    def show_vlan_members(self, vlan_id='1', after_filter={' ': ''}):
+    def show_vlan_members(self, vlan_id="1", after_filter={" ": ""}):
         """
         Description
         -----------
@@ -1691,8 +1913,10 @@ class Query():
 
         :return: show_vlan_members() returns a list of dicts on a successful call and a requests.models.Response object on a failed call.
         """
-        if ' ' not in after_filter.keys():
-            _after_filter = f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+        if " " not in after_filter.keys():
+            _after_filter = (
+                f"""<after>{xmltodict.unparse(after_filter, full_document=False)}</after>"""
+            )
         else:
             _after_filter = """"""
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
@@ -1714,12 +1938,15 @@ class Query():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: IMPLEMENT HTTPS HANDLING
@@ -1731,8 +1958,12 @@ class Query():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.more"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"][
+                    "action-reply"
+                ]["match"]
                 __after_filter = resp_dict[len(resp_dict) - 1]
                 try:
                     if isinstance(self.resp_show_vlan_members, list):
@@ -1741,8 +1972,12 @@ class Query():
                     self.resp_show_vlan_members = []
                     self.resp_show_vlan_members.extend(resp_dict)
                 return self.show_vlan_members(vlan_id=vlan_id, after_filter=__after_filter)
-            elif pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['action-reply']['match']
+            elif pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.action-reply.match"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"][
+                    "action-reply"
+                ]["match"]
                 try:
                     if isinstance(self.resp_show_vlan_members, list):
                         if isinstance(resp_dict, list):
@@ -1760,4 +1995,3 @@ class Query():
                 return resp
             else:
                 return response
-

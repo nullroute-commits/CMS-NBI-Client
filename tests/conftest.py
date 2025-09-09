@@ -1,52 +1,42 @@
-import pytest
 import asyncio
-from aiohttp import web
 import json
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
+import pytest
+from aiohttp import web
+
 from cmsnbiclient import CMSClient, Config
 
 
 class MockCMSServer:
     """Mock CMS server for testing"""
-    
+
     def __init__(self):
         self.app = web.Application()
         self.setup_routes()
         self.requests: List[Dict[str, Any]] = []
-        
+
     def setup_routes(self):
         """Setup mock routes"""
-        self.app.router.add_post('/cmsexc/ex/netconf', self.handle_netconf)
-        self.app.router.add_get('/restnbi/devices', self.handle_devices)
-        
+        self.app.router.add_post("/cmsexc/ex/netconf", self.handle_netconf)
+        self.app.router.add_get("/restnbi/devices", self.handle_devices)
+
     async def handle_netconf(self, request: web.Request) -> web.Response:
         """Handle NETCONF requests"""
         body = await request.text()
-        self.requests.append({
-            'method': 'POST',
-            'path': request.path,
-            'body': body,
-            'headers': dict(request.headers)
-        })
-        
+        self.requests.append(
+            {"method": "POST", "path": request.path, "body": body, "headers": dict(request.headers)}
+        )
+
         # Parse request and return appropriate response
-        if '<login>' in body:
-            return web.Response(
-                text=self._build_auth_response('12345'),
-                content_type='text/xml'
-            )
-        elif '<logout>' in body:
-            return web.Response(
-                text=self._build_logout_response(),
-                content_type='text/xml'
-            )
+        if "<login>" in body:
+            return web.Response(text=self._build_auth_response("12345"), content_type="text/xml")
+        elif "<logout>" in body:
+            return web.Response(text=self._build_logout_response(), content_type="text/xml")
         else:
             # Handle other operations
-            return web.Response(
-                text=self._build_operation_response(body),
-                content_type='text/xml'
-            )
-    
+            return web.Response(text=self._build_operation_response(body), content_type="text/xml")
+
     def _build_auth_response(self, session_id: str) -> str:
         """Build authentication response"""
         return f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -83,12 +73,14 @@ class MockCMSServer:
 
     async def handle_devices(self, request: web.Request) -> web.Response:
         """Handle REST device requests"""
-        return web.json_response({
-            'devices': [
-                {'id': '1', 'name': 'Device1', 'type': 'E7'},
-                {'id': '2', 'name': 'Device2', 'type': 'E7'}
-            ]
-        })
+        return web.json_response(
+            {
+                "devices": [
+                    {"id": "1", "name": "Device1", "type": "E7"},
+                    {"id": "2", "name": "Device2", "type": "E7"},
+                ]
+            }
+        )
 
 
 @pytest.fixture
@@ -96,7 +88,7 @@ async def mock_server(aiohttp_server):
     """Create mock CMS server"""
     server = MockCMSServer()
     app_server = await aiohttp_server(server.app)
-    server.url = str(app_server.make_url('/'))
+    server.url = str(app_server.make_url("/"))
     server.host = app_server.host
     server.port = app_server.port
     return server
@@ -107,17 +99,14 @@ async def client(mock_server):
     """Create test client"""
     config = Config(
         connection={
-            'protocol': 'http',
-            'host': mock_server.host,
-            'netconf_port': mock_server.port,
-            'verify_ssl': False
+            "protocol": "http",
+            "host": mock_server.host,
+            "netconf_port": mock_server.port,
+            "verify_ssl": False,
         },
-        credentials={
-            'username': 'test_user',
-            'password': 'test_pass'
-        }
+        credentials={"username": "test_user", "password": "test_pass"},
     )
-    
+
     async with CMSClient(config) as client:
         yield client
 

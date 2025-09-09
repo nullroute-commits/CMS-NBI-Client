@@ -1,17 +1,19 @@
 # IMPORT STATEMENT
-from CMSNBIClient import CMS_NBI_Client
-from CMSNBIClient import Create_E7_Data
+from CMSNBIClient import CMS_NBI_Client, Create_E7_Data
+
 # IMPORT STATEMENT
 
 # Create the CMS_NBI_Client() instance
 client = CMS_NBI_Client()
 
 # Next step is to submit a login request to the CMS server, I will be using an example node
-client.login_netconf(message_id='1',
-                     cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                     cms_user_pass=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['pass_wd'],
-                     cms_node_ip=client.cms_nbi_config['cms_nodes']['example_node']['connection']['cms_node_ip'],
-                     uri=client.cms_nbi_config['cms_netconf_uri']['e7'])
+client.login_netconf(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    cms_user_pass=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["pass_wd"],
+    cms_node_ip=client.cms_nbi_config["cms_nodes"]["example_node"]["connection"]["cms_node_ip"],
+    uri=client.cms_nbi_config["cms_netconf_uri"]["e7"],
+)
 # if the login_netconf() function is successful a tuple with (True, '') is returned  else a response.Models.Response object is returned
 # you can use the response library to debug the response.models.response object
 
@@ -31,21 +33,16 @@ create_e7_data = Create_E7_Data(client)
 #                  'ethintf': '1'}
 #              }
 #  }
-create_e7_data.vlan_members(message_id='1',
-                            cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                            network_nm='NTWK-Example_Name',
-                            vlan_member_id='0',
-                            int_id={'ethintf': {
-                                        'type': 'EthIntf',
-                                         'id': {
-                                             'shelf': '1',
-                                             'card': '1',
-                                             'ethintf': '1'}
-                                         }
-                                    })
+create_e7_data.vlan_members(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    vlan_member_id="0",
+    int_id={"ethintf": {"type": "EthIntf", "id": {"shelf": "1", "card": "1", "ethintf": "1"}}},
+)
 
 
-#------FOR ERPS/G8032 RINGS------
+# ------FOR ERPS/G8032 RINGS------
 # {
 #     'eapsintf': {
 #         'type': 'EapsIntf',
@@ -53,16 +50,14 @@ create_e7_data.vlan_members(message_id='1',
 #               }
 #     }
 # }
-create_e7_data.vlan_members(message_id='1',
-                            cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                            network_nm='NTWK-Example_Name',
-                            vlan_member_id='0',
-                            int_id={'eapsintf': {
-                                        'type': 'EapsIntf',
-                                        'id': {'eapsintf':'1'}
-                                                }
-                                    })
-#------FOR LAG INTERFACES------
+create_e7_data.vlan_members(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    vlan_member_id="0",
+    int_id={"eapsintf": {"type": "EapsIntf", "id": {"eapsintf": "1"}}},
+)
+# ------FOR LAG INTERFACES------
 # {
 #     'lagintf': {
 #             'type': 'LagIntf',
@@ -71,12 +66,10 @@ create_e7_data.vlan_members(message_id='1',
 #                 }
 #              }
 # }
-create_e7_data.vlan_members(message_id='1',
-                            cms_user_nm=client.cms_nbi_config['cms_nodes']['example_node']['cms_creds']['user_nm'],
-                            network_nm='NTWK-Example_Name',
-                            vlan_member_id='0',
-                            int_id={'lagintf': {
-                                                'type': 'LagIntf',
-                                                 'id': {'lagintf': '1'}
-                                                 }
-                                    })
+create_e7_data.vlan_members(
+    message_id="1",
+    cms_user_nm=client.cms_nbi_config["cms_nodes"]["example_node"]["cms_creds"]["user_nm"],
+    network_nm="NTWK-Example_Name",
+    vlan_member_id="0",
+    int_id={"lagintf": {"type": "LagIntf", "id": {"lagintf": "1"}}},
+)
