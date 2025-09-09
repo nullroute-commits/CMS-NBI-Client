@@ -1,0 +1,65 @@
+📢 Social Media Announcements
+
+Twitter/X:
+----------
+🚀 CMS-NBI-Client v2.0.0 is here! 
+
+✨ What's new:
+• Full async/await support
+• Docker Compose v2 deployment
+• 85% smaller Docker images
+• Complete documentation
+• Enhanced security & monitoring
+
+📦 pip install cmsnbiclient==2.0.0
+
+📖 Docs: https://nullroute-commits.github.io/CMS-NBI-Client/
+🔗 Release: https://github.com/nullroute-commits/CMS-NBI-Client/releases/tag/v2.0.0
+
+#Python #AsyncIO #Docker #OpenSource #Telecom
+
+LinkedIn:
+---------
+🎉 Excited to announce the release of CMS-NBI-Client v2.0.0!
+
+This major release brings modern Python practices to the Calix Management System integration space:
+
+🚀 Key Features:
+• Complete async/await implementation for better performance
+• Docker Compose v2 with Alpine-based images (85% size reduction)
+• Comprehensive documentation with MkDocs
+• Enhanced security with HTTPS and credential encryption
+• Circuit breakers and retry logic for resilience
+• Full CI/CD pipeline with GitHub Actions
+
+Perfect for teams working with Calix E7 platforms who need a modern, reliable Python client.
+
+📦 Available now on PyPI and Docker Hub
+📖 Full documentation at: https://nullroute-commits.github.io/CMS-NBI-Client/
+
+#Python #AsyncProgramming #Docker #DevOps #Telecommunications #OpenSource #SoftwareEngineering
+
+Reddit (r/Python):
+------------------
+# CMS-NBI-Client v2.0.0 Released - Modern Async Python Client for Calix Management System
+
+Hey r/Python! Just released v2.0.0 of CMS-NBI-Client, a complete modernization of the Python client for Calix Management System NBI.
+
+**Major improvements:**
+- Full async/await support with aiohttp
+- Docker images reduced from ~1GB to ~150MB using Alpine
+- Comprehensive test suite and documentation
+- Circuit breakers and retry logic
+- Type hints throughout
+
+**Tech stack:**
+- aiohttp for async HTTP
+- Pydantic for configuration
+- structlog for structured logging
+- pytest for testing
+- MkDocs for documentation
+
+GitHub: https://github.com/nullroute-commits/CMS-NBI-Client
+Docs: https://nullroute-commits.github.io/CMS-NBI-Client/
+
+Would love to hear your feedback!
