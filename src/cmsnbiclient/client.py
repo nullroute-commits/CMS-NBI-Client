@@ -2,7 +2,7 @@
 import json
 import os
 import random
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import pydash
 import requests
@@ -66,7 +66,9 @@ class Client:
         cwd = os.getcwd()
         cf_path = os.path.join(cwd, "cms_nbi_config.json")
 
-        def config_file_checker(data=config_data, config_file_path=cf_path):
+        def config_file_checker(
+            data: Dict[str, Any] = config_data, config_file_path: str = cf_path
+        ) -> Optional[bool]:
             # function to check if the cms_nbi_config.json file exist in the local dir
             # if it doesn't it will dump the default config to the cms_nbi_config.json file in local dir
             if not os.path.exists(config_file_path):
@@ -74,9 +76,9 @@ class Client:
                     json.dump(data, config_file, indent=5)
                 return True
             else:
-                pass
+                return None
 
-        def config_importer(config_file_path=cf_path):
+        def config_importer(config_file_path: str = cf_path) -> None:
             # function to import the stored json data at cms_nbi_config.json
             with open(config_file_path, "r") as cf_file:
                 self.cms_nbi_config = json.load(cf_file)["config"]
@@ -95,7 +97,7 @@ class Client:
         self.cms_user_pass = None
 
     @property
-    def message_id(self):
+    def message_id(self) -> str:
         """
         Description
         -----------
@@ -105,7 +107,7 @@ class Client:
         return str(random.getrandbits(random.randint(2, 31)))
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         return {
             "Content-Type": "text/xml;charset=ISO-8859-1",
             "User-Agent": f"CMS_NBI_CONNECT-{self.cms_user_nm}",
@@ -113,14 +115,14 @@ class Client:
 
     def login_netconf(
         self,
-        cms_user_nm="rootgod",
-        cms_user_pass="root",
-        protocol="http",
-        port="18080",
-        cms_node_ip="localhost",
-        uri="",
-        http_timeout=1,
-    ):
+        cms_user_nm: str = "rootgod",
+        cms_user_pass: str = "root",
+        protocol: str = "http",
+        port: str = "18080",
+        cms_node_ip: str = "localhost",
+        uri: str = "",
+        http_timeout: int = 1,
+    ) -> None:
         """
         Description
         -----------

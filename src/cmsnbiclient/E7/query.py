@@ -250,7 +250,7 @@ class Query:
                 try:
                     if isinstance(self.resp_system_children, list):
                         self.resp_system_children.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_system_children = []
                     self.resp_system_children.extend(resp_dict)
                 # Recursive method for pulling the rest of the children
@@ -267,7 +267,7 @@ class Query:
                         resp_system_children = self.resp_system_children
                         del self.resp_system_children
                         return resp_system_children
-                except:
+                except AttributeError:
                     self.resp_system_children = []
                     self.resp_system_children.extend(resp_dict)
                     resp_system_children = self.resp_system_children
@@ -403,7 +403,7 @@ class Query:
                 try:
                     if isinstance(self.resp_system_children_discont, list):
                         self.resp_system_children_discont.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_system_children_discont = []
                     self.resp_system_children_discont.extend(resp_dict)
                 return self.system_children_discont(
