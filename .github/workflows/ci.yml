@@ -62,7 +62,7 @@ jobs:
         docker compose -f docker compose.test.yml run --rm test-runner sh -c "cp -r /app/coverage/* ./coverage/"
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
+      uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
       with:
         file: ./coverage/.coverage
         fail_ci_if_error: false
