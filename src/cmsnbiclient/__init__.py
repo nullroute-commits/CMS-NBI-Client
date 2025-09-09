@@ -21,6 +21,17 @@ from .client_v2 import CMSClient, SyncCMSClient
 from .core.config import Config, ConnectionConfig, CredentialsConfig, PerformanceConfig
 from .core.logging import get_logger, setup_logging
 
+# Import exceptions
+from .exceptions import (
+    CMSClientError,
+    AuthenticationError,
+    ConnectionError,
+    OperationError,
+    ValidationError,
+    TimeoutError,
+    NetworkError,
+)
+
 __all__ = [
     "__version__",
     # Modern API
@@ -32,6 +43,14 @@ __all__ = [
     "PerformanceConfig",
     "setup_logging",
     "get_logger",
+    # Exceptions
+    "CMSClientError",
+    "AuthenticationError",
+    "ConnectionError",
+    "OperationError",
+    "ValidationError",
+    "TimeoutError",
+    "NetworkError",
     # Legacy API (deprecated)
     "LegacyClient",
 ]

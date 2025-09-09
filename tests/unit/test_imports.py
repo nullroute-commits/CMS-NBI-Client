@@ -30,6 +30,26 @@ class TestImports:
         
         assert LegacyClient is not None
     
+    def test_exception_imports(self):
+        """Test exception class imports."""
+        from cmsnbiclient import (
+            CMSClientError,
+            AuthenticationError,
+            ConnectionError,
+            OperationError,
+            ValidationError,
+            TimeoutError,
+            NetworkError,
+        )
+        
+        # Test inheritance
+        assert issubclass(AuthenticationError, CMSClientError)
+        assert issubclass(ConnectionError, CMSClientError)
+        assert issubclass(OperationError, CMSClientError)
+        assert issubclass(ValidationError, CMSClientError)
+        assert issubclass(TimeoutError, CMSClientError)
+        assert issubclass(NetworkError, CMSClientError)
+    
     def test_version_import(self):
         """Test version import."""
         from cmsnbiclient import __version__

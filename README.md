@@ -8,6 +8,8 @@ Modern async Python client for Calix Management System (CMS) Northbound Interfac
 
 **Note:** This package is not owned, supported, or endorsed by Calix. It's an independent implementation for interacting with CMS NBIs.
 
+> **Important:** This library is currently in a transition phase. The modern async CMSClient provides the foundation and configuration management, while the legacy Client class provides the full operational functionality. Both are available and can be used together. See the [Examples](./Examples) folder for working code samples.
+
 ## Features
 
 - **Modern Async/Await**: Built on aiohttp for high-performance async operations
@@ -48,9 +50,14 @@ async def main():
     )
     
     async with CMSClient(config) as client:
-        # Create ONT
-        result = await client.e7.create_ont(
-            network_name="NTWK-1",
+        # Note: High-level methods are available through the legacy client
+        # For modern async operations, use the underlying E7 modules directly
+        # Example using legacy operations:
+        
+        # Create ONT using E7 operations
+        create_op = client.e7.create
+        result = await create_op.ont(
+            network_nm="NTWK-1",
             ont_id="123",
             admin_state="enabled"
         )
@@ -60,12 +67,12 @@ async def main():
 asyncio.run(main())
 
 # Synchronous usage (backward compatible)
-with CMSClient.sync(config) as client:
-    result = client.e7.query_ont(
-        network_name="NTWK-1",
-        ont_id="123"
-    )
-    print(result)
+# Note: For most operations, use the LegacyClient for now
+from cmsnbiclient import LegacyClient
+
+legacy_client = LegacyClient()
+# Configure and use legacy client for production operations
+print("Use LegacyClient for full feature compatibility")
 ```
 
 ### Configuration
