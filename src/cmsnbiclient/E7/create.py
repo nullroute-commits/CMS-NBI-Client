@@ -1,11 +1,17 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
+import random
+import requests
+import xmltodict
+
+# Additional imports if needed  
+# import pydash  # Note: pydash is not in dependencies
+from ..client import Client  # Import Client from relative path to avoid circular import
+
 # IMPORT STATEMENTS
 
 
-class Create():
-
-    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
+class Create:
+    def __init__(self, client_object: Client, network_nm: str = "", http_timeout: int = 1):
         """
         Description
         -----------
@@ -32,20 +38,28 @@ class Create():
             ValueError: Will be raised if the object provided is not of cmsnbiclient.client.Client()
             ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
         """
-        # Test if the provided object is of a Client instance
-
-        if isinstance(client_object, Client):
+        # Test if the provided object is of a Client instance or CMSClient
+        # Import at runtime to avoid circular imports
+        from ..client_v2 import CMSClient
+        
+        if isinstance(client_object, (Client, CMSClient)):
             pass
         else:
             raise ValueError(
-                f"""Create() accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)} was passed""")
+                f"""Create() accepts a instance of cmsnbiclient.client.Client() or CMSClient, a instance of {type(client_object)} was passed"""
+            )
         self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
         if isinstance(self.client_object.cms_netconf_url, str):
-            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
+            if (
+                self.client_object.cms_nbi_config["cms_netconf_uri"]["e7"]
+                in self.client_object.cms_netconf_url
+            ):
                 pass
             else:
-                raise ValueError(f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
+                raise ValueError(
+                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}"""
+                )
         else:
             raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
         # TEST THE SESSION_ID VAR, THIS INSURES THAT ANY REQUEST ARE GOOD TO AUTHED
@@ -88,16 +102,32 @@ class Create():
         :var self.headers: a positive 32bit int is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
         :return: self.headers
         """
-        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+        return {
+            "Content-Type": "text/xml;charset=ISO-8859-1",
+            "User-Agent": f"CMS_NBI_CONNECT-{self.cms_user_nm}",
+        }
 
     @property
     def cms_user_nm(self):
         return self.client_object.cms_user_nm
 
-    def ont(self, ont_id='0', admin_state='enabled', ont_sn='0', reg_id='', sub_id='', ont_desc='', ontpwe3prof_id='1', ontprof_id='',
-            us_sdber_rate='5', low_rx_opt_pwr_ne_thresh='-30.0', high_rx_opt_pwr_ne_thresh='-7.0',
-            battery_present='false', pse_max_power_budget='30', poe_class_control='disabled'):
+    def ont(
+        self,
+        ont_id="0",
+        admin_state="enabled",
+        ont_sn="0",
+        reg_id="",
+        sub_id="",
+        ont_desc="",
+        ontpwe3prof_id="1",
+        ontprof_id="",
+        us_sdber_rate="5",
+        low_rx_opt_pwr_ne_thresh="-30.0",
+        high_rx_opt_pwr_ne_thresh="-7.0",
+        battery_present="false",
+        pse_max_power_budget="30",
+        poe_class_control="disabled",
+    ):
         """
         Description
         -----------
@@ -253,12 +283,15 @@ class Create():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -270,15 +303,36 @@ class Create():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def vlan(self, vlan_id='', name='', igmp_mode='flood', vlanigmpprof_id='1', dhcp_mode='none', mac_force_forw='false', ip_src_verify='false',
-             mac_learn='true', ae_ont_discovery='false', pon_tlan='false', pon_hairpin='false', igmp_pbit='pbit-4',
-             dhcp_svc_profile={'dhcp-svc-prof': ''}, option82_enable='true', eth_opt82prof_id='2',
-             gpon_opt82prof_id='1', mobility='false', pppoe_profile={'pppoe-prof': ''}):
+    def vlan(
+        self,
+        vlan_id="",
+        name="",
+        igmp_mode="flood",
+        vlanigmpprof_id="1",
+        dhcp_mode="none",
+        mac_force_forw="false",
+        ip_src_verify="false",
+        mac_learn="true",
+        ae_ont_discovery="false",
+        pon_tlan="false",
+        pon_hairpin="false",
+        igmp_pbit="pbit-4",
+        dhcp_svc_profile={"dhcp-svc-prof": ""},
+        option82_enable="true",
+        eth_opt82prof_id="2",
+        gpon_opt82prof_id="1",
+        mobility="false",
+        pppoe_profile={"pppoe-prof": ""},
+    ):
         """
         Description
         -----------
@@ -399,12 +453,12 @@ class Create():
                         dhcp_svc_profile={'dhcp-svc-prof': {'type': 'DhcpSvcProf', 'id': {'dhcpsvcprof': '1'}}})
 
         """
-        if isinstance(pppoe_profile['pppoe-prof'], dict):
+        if isinstance(pppoe_profile["pppoe-prof"], dict):
             _pppoe_profile = xmltodict.unparse(pppoe_profile, full_document=False)
         else:
             _pppoe_profile = """<pppoe-prof></pppoe-prof>"""
 
-        if isinstance(dhcp_svc_profile['dhcp-svc-prof'], dict):
+        if isinstance(dhcp_svc_profile["dhcp-svc-prof"], dict):
             _dhcp_svc_prof_id = xmltodict.unparse(dhcp_svc_profile, full_document=False)
         else:
             _dhcp_svc_prof_id = """<dhcp-svc-prof></dhcp-svc-prof>"""
@@ -463,12 +517,15 @@ class Create():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -480,12 +537,16 @@ class Create():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response
 
-    def vlan_members(self, vlan_id='', vlan_member_id='0', int_id={' ': ''}):
+    def vlan_members(self, vlan_id="", vlan_member_id="0", int_id={" ": ""}):
         """
         Description
         -----------
@@ -574,17 +635,21 @@ class Create():
                                             })
         """
 
-        if ' ' not in int_id.keys() and len(int_id.keys()) == 1:
-            if 'ethintf' in int_id.keys():
-                _int_id = xmltodict.unparse(int_id['ethintf'], full_document=False)
-            elif 'lagintf' in int_id.keys():
-                _int_id = xmltodict.unparse(int_id['lagintf'], full_document=False)
-            elif 'eapsintf' in int_id.keys():
-                _int_id = xmltodict.unparse(int_id['eapsintf'], full_document=False)
+        if " " not in int_id.keys() and len(int_id.keys()) == 1:
+            if "ethintf" in int_id.keys():
+                _int_id = xmltodict.unparse(int_id["ethintf"], full_document=False)
+            elif "lagintf" in int_id.keys():
+                _int_id = xmltodict.unparse(int_id["lagintf"], full_document=False)
+            elif "eapsintf" in int_id.keys():
+                _int_id = xmltodict.unparse(int_id["eapsintf"], full_document=False)
             else:
-                raise AttributeError("int_id expects a object to add to the vlan_members please review and resubmit")
+                raise AttributeError(
+                    "int_id expects a object to add to the vlan_members please review and resubmit"
+                )
         else:
-            raise AttributeError("int_id expects a object to add to the vlan_members please review and resubmit")
+            raise AttributeError(
+                "int_id expects a object to add to the vlan_members please review and resubmit"
+            )
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
@@ -612,12 +677,15 @@ class Create():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -629,13 +697,36 @@ class Create():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"][
+                    "top"
+                ]["object"]
                 return resp_dict
             else:
                 return response
 
-    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '3', ontethany: str = '1', ethsvc: str = '1', admin_state: str = 'enabled', descr: str = '', svctagaction_id: str = '', bwprof_id: str = '', out_tag_id: str = 'none', inner_tag_id: str = 'none', mcast_prof_id: str = '0', pon_cos_id: str = 'derived', us_cir_override: str = 'none', us_pir_override: str = 'none',  ds_pir_override: str = 'none', hot_swap: str = 'false', pppoe_force_discard: str = 'false'):
+    def ont_ethsvc(
+        self,
+        ont_id: str = "",
+        ontslot: str = "3",
+        ontethany: str = "1",
+        ethsvc: str = "1",
+        admin_state: str = "enabled",
+        descr: str = "",
+        svctagaction_id: str = "",
+        bwprof_id: str = "",
+        out_tag_id: str = "none",
+        inner_tag_id: str = "none",
+        mcast_prof_id: str = "0",
+        pon_cos_id: str = "derived",
+        us_cir_override: str = "none",
+        us_pir_override: str = "none",
+        ds_pir_override: str = "none",
+        hot_swap: str = "false",
+        pppoe_force_discard: str = "false",
+    ):
         """
         Description
         -----------
@@ -744,7 +835,7 @@ class Create():
         :return: ont() returns a response.models.Response object on a failed call, and a nested dict on a successful call
         """
         # TODO: IMPLEMENT PARAMETER CHECKING, MAKE SURE THE EXPECTED VALUES ARE PROVIDED
-        if mcast_prof_id == '0':
+        if mcast_prof_id == "0":
             _mcast_prof = """<mcast-prof></mcast-prof>"""
         else:
             _mcast_prof = f"""<mcast-prof>
@@ -802,12 +893,15 @@ class Create():
                                 </soapenv:Body>
                             </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: will need to research how to implement https connection with request library
@@ -819,7 +913,11 @@ class Create():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']['data']['top']['object']
+            if pydash.objects.has(
+                resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.data.top.object"
+            ):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]["data"]["top"][
+                    "object"
+                ]
             else:
                 return response

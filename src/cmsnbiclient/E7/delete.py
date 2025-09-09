@@ -1,11 +1,17 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, xmltodict, pydash, random, Client)
+import random
+import requests
+import xmltodict
+
+# Additional imports if needed  
+# import pydash  # Note: pydash is not in dependencies
+from ..client import Client  # Import Client from relative path to avoid circular import
+
 # IMPORT STATEMENTS
 
 
-class Delete():
-
-    def __init__(self, client_object: Client, network_nm: str = '', http_timeout: int = 1):
+class Delete:
+    def __init__(self, client_object: Client, network_nm: str = "", http_timeout: int = 1):
         """
         Description
         -----------
@@ -30,19 +36,28 @@ class Delete():
             ValueError: Will be raised if the network_nm is not a str with a length at least 1 char
 
         """
-        # Test if the provided object is of a CMS_NBI_Client instance
-
-        if isinstance(client_object, Client):
+        # Test if the provided object is of a Client instance or CMSClient
+        # Import at runtime to avoid circular imports
+        from ..client_v2 import CMSClient
+        
+        if isinstance(client_object, (Client, CMSClient)):
             pass
         else:
-            raise ValueError(f"""Delete accepts a instance of cmsnbiclient.client.Client(), a instance of {type(client_object)}""")
+            raise ValueError(
+                f"""Delete accepts a instance of cmsnbiclient.client.Client() or CMSClient, a instance of {type(client_object)}"""
+            )
         self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
         if isinstance(self.client_object.cms_netconf_url, str):
-            if self.client_object.cms_nbi_config['cms_netconf_uri']['e7'] in self.client_object.cms_netconf_url:
+            if (
+                self.client_object.cms_nbi_config["cms_netconf_uri"]["e7"]
+                in self.client_object.cms_netconf_url
+            ):
                 pass
             else:
-                raise ValueError(f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}""")
+                raise ValueError(
+                    f"""uri:{self.client_object.cms_nbi_config['cms_netconf_uri']['e7']} was not found in self.client_object.cms_netconf_url:{self.client_object.cms_netconf_url}"""
+                )
         else:
             raise ValueError(f"""self.client_object.cms_netconf_url must be a str object""")
         # test if the session_id is a str object
@@ -80,14 +95,16 @@ class Delete():
 
     @property
     def headers(self):
-        return {'Content-Type': 'text/xml;charset=ISO-8859-1',
-                'User-Agent': f'CMS_NBI_CONNECT-{self.cms_user_nm}'}
+        return {
+            "Content-Type": "text/xml;charset=ISO-8859-1",
+            "User-Agent": f"CMS_NBI_CONNECT-{self.cms_user_nm}",
+        }
 
     @property
     def cms_user_nm(self):
         return self.client_object.cms_user_nm
 
-    def ont(self, ont_id='', force='false'):
+    def ont(self, ont_id="", force="false"):
         """
         Description
         -----------
@@ -111,9 +128,13 @@ class Delete():
             if ont_id.isdigit():
                 pass
             else:
-                raise AttributeError("""param:ont_id is expected to be a digit in the form of a str object""")
+                raise AttributeError(
+                    """param:ont_id is expected to be a digit in the form of a str object"""
+                )
         else:
-            raise AttributeError("""param:ont_id is expected to be a digit in the form of a str object""")
+            raise AttributeError(
+                """param:ont_id is expected to be a digit in the form of a str object"""
+            )
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                         <soapenv:Body>
@@ -137,12 +158,15 @@ class Delete():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -154,12 +178,12 @@ class Delete():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
+            if pydash.objects.has(resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.ok"):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]
             else:
                 return response
 
-    def vlan(self, vlan_id='', force='false'):
+    def vlan(self, vlan_id="", force="false"):
         """
         Description
         -----------
@@ -183,9 +207,13 @@ class Delete():
             if vlan_id.isdigit():
                 pass
             else:
-                raise AttributeError("""param:vlan_id is expected to be a digit in the form of a str object""")
+                raise AttributeError(
+                    """param:vlan_id is expected to be a digit in the form of a str object"""
+                )
         else:
-            raise AttributeError("""param:vlan_id is expected to be a digit in the form of a str object""")
+            raise AttributeError(
+                """param:vlan_id is expected to be a digit in the form of a str object"""
+            )
 
         payload = f"""<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
                                 <soapenv:Body>
@@ -209,12 +237,15 @@ class Delete():
                                 </soapenv:Body>
                             </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -226,12 +257,12 @@ class Delete():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
-                return resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
+            if pydash.objects.has(resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.ok"):
+                return resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]
             else:
                 return response
 
-    def vlanmem(self, vlan_id: str = '', vlan_member_id: str = '', force: str = 'false'):
+    def vlanmem(self, vlan_id: str = "", vlan_member_id: str = "", force: str = "false"):
         """
         Description
         -----------
@@ -277,12 +308,15 @@ class Delete():
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # will need to research how to implement https connection with request library
@@ -294,13 +328,15 @@ class Delete():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
+            if pydash.objects.has(resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.ok"):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]
                 return resp_dict
             else:
                 return response
 
-    def ont_ethsvc(self, ont_id: str = '', ontslot: str = '3', ontethany: str = '1', ethsvc: str = '1'):
+    def ont_ethsvc(
+        self, ont_id: str = "", ontslot: str = "3", ontethany: str = "1", ethsvc: str = "1"
+    ):
         """
         Description
         -----------
@@ -347,12 +383,15 @@ class Delete():
                                 </soapenv:Body>
                             </soapenv:Envelope>"""
 
-        if 'https' not in self.client_object.cms_netconf_url:
+        if "https" not in self.client_object.cms_netconf_url:
             try:
-                response = requests.post(url=self.client_object.cms_netconf_url, headers=self.headers, data=payload,
-                                         timeout=self.http_timeout)
+                response = requests.post(
+                    url=self.client_object.cms_netconf_url,
+                    headers=self.headers,
+                    data=payload,
+                    timeout=self.http_timeout,
+                )
             except requests.exceptions.Timeout as e:
-
                 raise e
         else:
             # TODO: will need to research how to implement https connection with request library
@@ -364,9 +403,8 @@ class Delete():
 
         else:
             resp_dict = xmltodict.parse(response.content)
-            if pydash.objects.has(resp_dict, 'soapenv:Envelope.soapenv:Body.rpc-reply.ok'):
-                resp_dict = resp_dict['soapenv:Envelope']['soapenv:Body']['rpc-reply']
+            if pydash.objects.has(resp_dict, "soapenv:Envelope.soapenv:Body.rpc-reply.ok"):
+                resp_dict = resp_dict["soapenv:Envelope"]["soapenv:Body"]["rpc-reply"]
                 return resp_dict
             else:
                 return response
-

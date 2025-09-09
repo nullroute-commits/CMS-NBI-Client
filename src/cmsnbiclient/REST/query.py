@@ -1,10 +1,12 @@
 # IMPORT STATEMENTS
-from cmsnbiclient import (requests, Client)
+import requests
+
+from ..client import Client  # Import Client from relative path to avoid circular import
+
 # IMPORT STATEMENTS
 
 
-class Query():
-
+class Query:
     def __init__(self, cms_nbi_connect_object):
         """
         Description
@@ -16,17 +18,28 @@ class Query():
         :var self.cms_nbi_connect_object: accepts object created by the CMS_NBI_Client
         :type self.cms_nbi_connect_object: object
         """
-        # Test if the provided object is of a CMS_NBI_Client instance
-
-        if isinstance(cms_nbi_connect_object, Client):
+        # Test if the provided object is of a Client instance or CMSClient
+        # Import at runtime to avoid circular imports
+        from ..client_v2 import CMSClient
+        
+        if isinstance(cms_nbi_connect_object, (Client, CMSClient)):
             pass
         else:
             raise ValueError(
-                f"""Query accepts a instance of cms_nbi_client, a instance of {type(cms_nbi_connect_object)}""")
+                f"""Query accepts a instance of Client or CMSClient, a instance of {type(cms_nbi_connect_object)}"""
+            )
         self.cms_nbi_connect_object = cms_nbi_connect_object
 
-    def device(self, protocol='http', port='8080', cms_user_nm='rootgod', cms_user_pass='root', cms_node_ip='localhost',
-               device_type='', http_timeout=1):
+    def device(
+        self,
+        protocol="http",
+        port="8080",
+        cms_user_nm="rootgod",
+        cms_user_pass="root",
+        cms_node_ip="localhost",
+        device_type="",
+        http_timeout=1,
+    ):
         """
         Description
         -----------
@@ -91,17 +104,23 @@ class Query():
 
         payload = ""
 
-        headers = {'Content-Type': 'application/json',
-                   'User-Agent': f'CMS_NBI_CONNECT-{cms_user_nm}'}
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": f"CMS_NBI_CONNECT-{cms_user_nm}",
+        }
 
         try:
-            response = requests.get(url=cms_rest_url, headers=headers, data=payload, auth=(cms_user_nm, cms_user_pass),
-                                    timeout=http_timeout)
+            response = requests.get(
+                url=cms_rest_url,
+                headers=headers,
+                data=payload,
+                auth=(cms_user_nm, cms_user_pass),
+                timeout=http_timeout,
+            )
         except requests.exceptions.Timeout as e:
-
             raise e
 
         if response.status_code == 200:
-            return response.json()['data']
+            return response.json()["data"]
         else:
             return response
