@@ -2,7 +2,7 @@
 import json
 import os
 import random
-from typing import Any, Dict, Optional, Union, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 import pydash
 import requests
@@ -226,12 +226,12 @@ class Client:
                 return response
 
     def logout_netconf(
-        self, 
-        protocol: str = "http", 
-        port: str = "18080", 
-        cms_node_ip: str = "localhost", 
-        uri: str = "", 
-        http_timeout: int = 1
+        self,
+        protocol: str = "http",
+        port: str = "18080",
+        cms_node_ip: str = "localhost",
+        uri: str = "",
+        http_timeout: int = 1,
     ) -> Any:
         """
         Description
@@ -318,11 +318,7 @@ class Client:
                 return response
 
     def update_config(
-        self, 
-        pass_wd: str = "", 
-        user_nm: str = "", 
-        cms_node_ip: str = "", 
-        cms_node_name: str = ""
+        self, pass_wd: str = "", user_nm: str = "", cms_node_ip: str = "", cms_node_name: str = ""
     ) -> Any:
         """
         Description
@@ -349,8 +345,7 @@ class Client:
         cf_path = os.path.join(cwd, "../cms_nbi_config.json")
 
         def config_file_updater(
-            data: Dict[str, Any] = self.cms_nbi_config, 
-            config_file_path: str = cf_path
+            data: Dict[str, Any] = self.cms_nbi_config, config_file_path: str = cf_path
         ) -> None:
             # function to check if the cms_nbi_config.json file exist in the local dir
             # if it doesn't it will dump the default config to the cms_nbi_config.json file in local dir

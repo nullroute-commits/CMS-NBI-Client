@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Callable, List, MutableMapping, Optional, Union
+from typing import Any, Callable, List, MutableMapping, Optional
 
 import structlog
 

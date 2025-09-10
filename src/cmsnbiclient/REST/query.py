@@ -102,17 +102,17 @@ class Query:
                                http_timeout=5)
         """
         # Handle both Client and CMSClient types
-        if hasattr(self.cms_nbi_connect_object, 'cms_nbi_config'):
+        if hasattr(self.cms_nbi_connect_object, "cms_nbi_config"):
             config = self.cms_nbi_connect_object.cms_nbi_config
         else:
             # Fallback for CMSClient or other types
-            config = getattr(self.cms_nbi_connect_object, 'config', {}).get('cms_rest_uri', {})
-        
-        if isinstance(config, dict) and 'cms_rest_uri' in config:
-            uri = config['cms_rest_uri']['devices']
+            config = getattr(self.cms_nbi_connect_object, "config", {}).get("cms_rest_uri", {})
+
+        if isinstance(config, dict) and "cms_rest_uri" in config:
+            uri = config["cms_rest_uri"]["devices"]
         else:
-            uri = '/restnbi/devices?deviceType='  # Default fallback
-            
+            uri = "/restnbi/devices?deviceType="  # Default fallback
+
         cms_rest_url = f"""{protocol}://{cms_node_ip}:{port}{uri}{device_type}&limit=9999"""
 
         payload = ""
