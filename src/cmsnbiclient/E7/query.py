@@ -1,6 +1,6 @@
 # IMPORT STATEMENTS
 import random
-from typing import Any
+from typing import Any, Dict, List, Optional, Union
 
 import pydash
 import requests
@@ -84,9 +84,16 @@ class Query:
         # ASSIGNING CLASS VARIABLES
         self.network_nm = network_nm
         self.http_timeout = http_timeout
+        
+        # Initialize optional response storage variables
+        self.resp_system_children: Optional[List[Dict[str, Any]]] = None
+        self.resp_system_children_discont: Optional[List[Dict[str, Any]]] = None
+        self.resp_system_children_ontprof: Optional[List[Dict[str, Any]]] = None
+        self.resp_system_children_ontpwe3prof: Optional[List[Dict[str, Any]]] = None
+        self.resp_system_children_vlan: Optional[List[Dict[str, Any]]] = None
 
     @property
-    def message_id(self):
+    def message_id(self) -> str:
         """
         Description
         -----------
@@ -96,17 +103,19 @@ class Query:
         return str(random.getrandbits(random.randint(2, 31)))
 
     @property
-    def headers(self):
+    def headers(self) -> dict[str, str]:
         return {
             "Content-Type": "text/xml;charset=ISO-8859-1",
             "User-Agent": f"CMS_NBI_CONNECT-{self.cms_user_nm}",
         }
 
     @property
-    def cms_user_nm(self):
+    def cms_user_nm(self) -> str:
+        if self.client_object.cms_user_nm is None:
+            raise ValueError("cms_user_nm is not set on client object")
         return self.client_object.cms_user_nm
 
-    def system(self):
+    def system(self) -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
@@ -167,7 +176,7 @@ class Query:
             else:
                 return response
 
-    def system_children(self, after_filter={"": ""}) -> Any:
+    def system_children(self, after_filter: Dict[str, str] = None) -> Any:
         """
         Description
         -----------
@@ -183,6 +192,9 @@ class Query:
 
         :return: system_children() returns a requests.models.Response object on a failed call, and a nested dict on a successful call
         """
+        if after_filter is None:
+            after_filter = {"": ""}
+        
         if "type" in after_filter.keys():
             _after = f"""\n<after>\n<type>{after_filter['type']}</type>\n<id>\n<{after_filter['type'].lower()}>{after_filter['id']}<{'/' + after_filter['type'].lower()}>\n</id>\n</after>\n"""
         else:
@@ -209,6 +221,9 @@ class Query:
         </rpc>
         </soapenv:Body>
         </soapenv:Envelope>"""
+
+        if self.client_object.cms_netconf_url is None:
+            raise ValueError("cms_netconf_url is not set on client object")
 
         if "https" not in self.client_object.cms_netconf_url:
             try:
@@ -277,7 +292,7 @@ class Query:
             else:
                 return response
 
-    def system_children_discont(self, after_filter={"": ""}, attr_filter={"": ""}) -> Any:
+    def system_children_discont(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
         """
         Description
         -----------
@@ -296,6 +311,11 @@ class Query:
 
         :return: system_children_discont() will return a requests.models.Response object on a failed call, and a list of nested dict on a successful call
         """
+        if after_filter is None:
+            after_filter = {"": ""}
+        if attr_filter is None:
+            attr_filter = {"": ""}
+            
         if "discont" in after_filter.keys():
             after_filter = f"""<after>
                                 <type>DiscOnt</type>
@@ -452,7 +472,7 @@ class Query:
             else:
                 return response
 
-    def system_children_ontprof(self, after_filter={"": ""}, attr_filter={"": ""}):
+    def system_children_ontprof(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
         """
         Description
         -----------
@@ -595,7 +615,7 @@ class Query:
             else:
                 return response
 
-    def system_children_ontpwe3prof(self, after_filter={"": ""}, attr_filter={"": ""}):
+    def system_children_ontpwe3prof(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
         """
         Description
         -----------
@@ -718,7 +738,7 @@ class Query:
             else:
                 return response
 
-    def system_children_vlan(self, after_filter={"": ""}, attr_filter={"": ""}):
+    def system_children_vlan(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
         """
         Description
         -----------
@@ -848,7 +868,7 @@ class Query:
             else:
                 return response
 
-    def ont_children_ethsvc(self, ont_id="", after_filter={"": ""}, attr_filter={"": ""}):
+    def ont_children_ethsvc(self, ont_id: str = "", after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
         """
         Description
         -----------
@@ -1385,7 +1405,7 @@ class Query:
 
     def ont_ethsvc(
         self, ont_id: str = "", ontslot: str = "3", ontethany: str = "1", ethsvc: str = "1"
-    ):
+    ) -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
@@ -1460,7 +1480,7 @@ class Query:
             else:
                 return response
 
-    def ont_geth(self, ont_id: str = "", ontethge: str = "1"):
+    def ont_geth(self, ont_id: str = "", ontethge: str = "1") -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
