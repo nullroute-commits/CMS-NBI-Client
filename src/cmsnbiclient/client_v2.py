@@ -72,7 +72,7 @@ class CMSClient(BaseClient):
             except Exception as e:
                 self.logger.error(f"Logout failed: {e}")
 
-        if self._transport is not None and hasattr(self._transport, 'close'):
+        if self._transport is not None and hasattr(self._transport, "close"):
             await self._transport.close()  # type: ignore
 
     async def _logout(self) -> None:
