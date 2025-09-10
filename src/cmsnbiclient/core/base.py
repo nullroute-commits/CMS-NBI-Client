@@ -194,7 +194,7 @@ class BaseOperation(ABC):
         pass
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-    async def execute(self, **kwargs) -> Any:
+    async def execute(self, **kwargs: Any) -> Any:
         """Execute the operation with retry logic.
 
         This method wraps the actual operation execution with:
@@ -220,7 +220,7 @@ class BaseOperation(ABC):
             raise
 
     @abstractmethod
-    async def _execute(self, **kwargs) -> Any:
+    async def _execute(self, **kwargs: Any) -> Any:
         """Implementation of the actual operation execution.
 
         This method must be implemented by subclasses to perform

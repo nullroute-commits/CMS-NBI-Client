@@ -1,4 +1,5 @@
-# IMPORT STATEMENTS
+from typing import Any, Union
+
 import requests
 
 from ..client import Client  # Import Client from relative path to avoid circular import
@@ -7,7 +8,7 @@ from ..client import Client  # Import Client from relative path to avoid circula
 
 
 class Query:
-    def __init__(self, cms_nbi_connect_object):
+    def __init__(self, cms_nbi_connect_object: Union[Client, Any]) -> None:
         """
         Description
         -----------
@@ -32,14 +33,14 @@ class Query:
 
     def device(
         self,
-        protocol="http",
-        port="8080",
-        cms_user_nm="rootgod",
-        cms_user_pass="root",
-        cms_node_ip="localhost",
-        device_type="",
-        http_timeout=1,
-    ):
+        protocol: str = "http",
+        port: str = "8080",
+        cms_user_nm: str = "rootgod",
+        cms_user_pass: str = "root",
+        cms_node_ip: str = "localhost",
+        device_type: str = "",
+        http_timeout: int = 1,
+    ) -> Any:
         """
         Description
         -----------
@@ -100,7 +101,19 @@ class Query:
                                device_type='c7',
                                http_timeout=5)
         """
-        cms_rest_url = f"""{protocol}://{cms_node_ip}:{port}{self.cms_nbi_connect_object.cms_nbi_config['cms_rest_uri']['devices']}{device_type}&limit=9999"""
+        # Handle both Client and CMSClient types
+        if hasattr(self.cms_nbi_connect_object, 'cms_nbi_config'):
+            config = self.cms_nbi_connect_object.cms_nbi_config
+        else:
+            # Fallback for CMSClient or other types
+            config = getattr(self.cms_nbi_connect_object, 'config', {}).get('cms_rest_uri', {})
+        
+        if isinstance(config, dict) and 'cms_rest_uri' in config:
+            uri = config['cms_rest_uri']['devices']
+        else:
+            uri = '/restnbi/devices?deviceType='  # Default fallback
+            
+        cms_rest_url = f"""{protocol}://{cms_node_ip}:{port}{uri}{device_type}&limit=9999"""
 
         payload = ""
 

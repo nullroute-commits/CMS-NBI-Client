@@ -46,7 +46,7 @@ class SecureXMLHandler:
 
     def _element_to_dict(self, element: Element) -> Union[Dict[str, Any], str]:
         """Convert XML element to dictionary"""
-        result = {}
+        result: Dict[str, Any] = {}
 
         # Add attributes
         if element.attrib:
@@ -66,7 +66,7 @@ class SecureXMLHandler:
                 # Convert to list if multiple children with same tag
                 if not isinstance(result[child.tag], list):
                     result[child.tag] = [result[child.tag]]
-                result[child.tag].append(child_data)
+                result[child.tag].append(child_data)  # type: ignore
             else:
                 result[child.tag] = child_data
 

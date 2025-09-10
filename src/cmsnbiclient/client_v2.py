@@ -48,6 +48,8 @@ class CMSClient(BaseClient):
 
             # Send request
             url = self._build_netconf_url()
+            if self._transport is None:
+                raise RuntimeError("Transport not initialized")
             response = await self._transport.request(
                 method="POST",
                 url=url,
@@ -70,13 +72,16 @@ class CMSClient(BaseClient):
             except Exception as e:
                 self.logger.error(f"Logout failed: {e}")
 
-        await self._transport.close()
+        if self._transport is not None and hasattr(self._transport, 'close'):
+            await self._transport.close()  # type: ignore
 
     async def _logout(self) -> None:
         """Logout from CMS"""
         payload = self._build_logout_payload()
         url = self._build_netconf_url()
 
+        if self._transport is None:
+            raise RuntimeError("Transport not initialized")
         await self._transport.request(
             method="POST",
             url=url,
