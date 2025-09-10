@@ -1,5 +1,6 @@
 # IMPORT STATEMENTS
 import random
+from typing import Any, Dict, Union
 
 import pydash
 import requests
@@ -81,7 +82,7 @@ class Update:
         self.http_timeout = http_timeout
 
     @property
-    def message_id(self):
+    def message_id(self) -> str:
         """
         Description
         -----------
@@ -91,14 +92,16 @@ class Update:
         return str(random.getrandbits(random.randint(2, 31)))
 
     @property
-    def headers(self):
+    def headers(self) -> dict[str, str]:
         return {
             "Content-Type": "text/xml;charset=ISO-8859-1",
             "User-Agent": f"CMSNBICLIENT-{self.cms_user_nm}",
         }
 
     @property
-    def cms_user_nm(self):
+    def cms_user_nm(self) -> str:
+        if self.client_object.cms_user_nm is None:
+            raise ValueError("cms_user_nm is not set on client object")
         return self.client_object.cms_user_nm
 
     def ont(
@@ -118,7 +121,7 @@ class Update:
         pse_max_power_budget: str = "",
         poe_class_control: str = "",
         replace_sn: str = "0",
-    ):
+    ) -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
@@ -260,6 +263,9 @@ class Update:
                             </soapenv:Body>
                         </soapenv:Envelope>"""
         # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
+        if self.client_object.cms_netconf_url is None:
+            raise ValueError("cms_netconf_url is not set on client object")
+        
         if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(
@@ -313,7 +319,7 @@ class Update:
         voice_policy_profile: str = "",
         ppte_power_control: str = "",
         policing: str = "",
-    ):
+    ) -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
@@ -447,12 +453,12 @@ class Update:
         # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
 
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
-        if not pydash.objects.get("gos.id.ontethportgos", change_var):
-            change_var.pop("gos")
-        if not pydash.objects.get("pbit-map.id.dscpmap", change_var):
-            change_var.pop("pbit-map")
-        if not pydash.objects.get("sec.id.ethsecprof", change_var):
-            change_var.pop("sec")
+        if not pydash.get(change_var, "gos.id.ontethportgos"):
+            change_var.pop("gos", None)
+        if not pydash.get(change_var, "pbit-map.id.dscpmap"):
+            change_var.pop("pbit-map", None)
+        if not pydash.get(change_var, "sec.id.ethsecprof"):
+            change_var.pop("sec", None)
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
 
         chang_xml = xmltodict.unparse(change_var, full_document=False)
@@ -482,6 +488,9 @@ class Update:
                                     </soapenv:Body>
                                 </soapenv:Envelope>"""
         # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
+        if self.client_object.cms_netconf_url is None:
+            raise ValueError("cms_netconf_url is not set on client object")
+        
         if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(
@@ -530,7 +539,7 @@ class Update:
         ds_pir_override: str = "",
         hot_swap: str = "",
         pppoe_force_discard: str = "",
-    ):
+    ) -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
@@ -671,12 +680,12 @@ class Update:
         # REMOVING ANY SINGLE LEVEL KEY/VALUE pairs where the lowest value is empty
 
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
-        if not pydash.objects.get("bw-prof.id.bwprof", change_var):
-            change_var.pop("bw-prof")
-        if not pydash.objects.get("tag-action.id.svctagaction", change_var):
-            change_var.pop("tag-action")
-        if not pydash.objects.get("mcast-prof.id.mcastprof", change_var):
-            change_var.pop("mcast-prof")
+        if not pydash.get(change_var, "bw-prof.id.bwprof"):
+            change_var.pop("bw-prof", None)
+        if not pydash.get(change_var, "tag-action.id.svctagaction"):
+            change_var.pop("tag-action", None)
+        if not pydash.get(change_var, "mcast-prof.id.mcastprof"):
+            change_var.pop("mcast-prof", None)
         # REMOVING THE REMAINING EMPTY MULTILEVEL DICTIONARY
 
         chang_xml = xmltodict.unparse(change_var, full_document=False)
@@ -707,6 +716,9 @@ class Update:
                                         </soapenv:Envelope>"""
 
         # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
+        if self.client_object.cms_netconf_url is None:
+            raise ValueError("cms_netconf_url is not set on client object")
+        
         if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(
