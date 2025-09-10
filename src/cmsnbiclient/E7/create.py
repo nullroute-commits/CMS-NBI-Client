@@ -22,13 +22,21 @@ class Create:
         :param client_object:accepts object created by the cms_nbi_client.client.Client()
         :type client_object:Client
 
-        :param network_nm:this parameter contains the node name, which is made of the case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7. The nodename value can consist of alphanumeric, underscore, and space characters, this is described in pg.26 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :param network_nm:this parameter contains the node name, which is made of the
+            case-sensitive name of the E7 OS platform, preceded by NTWK-. Example: NTWK-Pet02E7.
+            The nodename value can consist of alphanumeric, underscore, and space characters,
+            this is described in pg.26 of Calix Management System (CMS) R15.x Northbound
+            Interface API Guide
         :type network_nm:str
 
-        :param http_timeout:this parameter is fed to the request.request() function as a timeout more can be read at the request library docs
+        :param http_timeout:this parameter is fed to the request.request() function as a timeout
+            more can be read at the request library docs
         :type http_timeout:int
 
-        :var self.message_id:a positive int up to 32bit is generated with each call of self.message_id, the CMS server uses this str to match requests/responses, for more infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound Interface API Guide
+        :var self.message_id:a positive int up to 32bit is generated with each call of
+            self.message_id, the CMS server uses this str to match requests/responses, for more
+            infomation please read pg.29 of Calix Management System (CMS) R15.x Northbound
+            Interface API Guide
         :type self.message_id:str
 
         :var self.client_object:accepts object created by the cmsnbiclient.client.Client()
@@ -46,7 +54,8 @@ class Create:
             pass
         else:
             raise ValueError(
-                f"""Create() accepts a instance of cmsnbiclient.client.Client() or CMSClient, a instance of {type(client_object)} was passed"""
+                f"""Create() accepts a instance of cmsnbiclient.client.Client() or CMSClient,
+                a instance of {type(client_object)} was passed"""
             )
         self.client_object = client_object
         # Test if the cms_netconf_url is a str object and contains the e7 uri
