@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Optional
+from typing import Any, Callable, List, MutableMapping, Optional, Union
 
 import structlog
 
@@ -16,7 +16,7 @@ def setup_logging(
     )
 
     # Configure structlog
-    processors = [
+    processors: List[Callable[[Any, str, MutableMapping[str, Any]], Any]] = [
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.stdlib.PositionalArgumentsFormatter(),
@@ -54,7 +54,7 @@ def setup_logging(
     )
 
 
-def get_logger(name: Optional[str] = None) -> structlog.BoundLogger:
+def get_logger(name: Optional[str] = None) -> Any:  # Return Any to avoid complex structlog typing
     """Get a configured logger instance"""
     return structlog.get_logger(name)
 
@@ -62,10 +62,10 @@ def get_logger(name: Optional[str] = None) -> structlog.BoundLogger:
 class LogContext:
     """Context manager for adding temporary log context"""
 
-    def __init__(self, logger: structlog.BoundLogger, **kwargs: Any) -> None:
+    def __init__(self, logger: Any, **kwargs: Any) -> None:
         self.logger = logger
         self.context = kwargs
-        self.token = None
+        self.token: Any = None
 
     def __enter__(self) -> "LogContext":
         self.token = structlog.contextvars.bind_contextvars(**self.context)

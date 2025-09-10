@@ -1,5 +1,6 @@
 # IMPORT STATEMENTS
 import random
+from typing import Any
 
 import pydash
 import requests
@@ -166,7 +167,7 @@ class Query:
             else:
                 return response
 
-    def system_children(self, after_filter={"": ""}):
+    def system_children(self, after_filter={"": ""}) -> Any:
         """
         Description
         -----------
@@ -276,7 +277,7 @@ class Query:
             else:
                 return response
 
-    def system_children_discont(self, after_filter={"": ""}, attr_filter={"": ""}):
+    def system_children_discont(self, after_filter={"": ""}, attr_filter={"": ""}) -> Any:
         """
         Description
         -----------

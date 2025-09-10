@@ -2,7 +2,7 @@
 import json
 import os
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union, Tuple
 
 import pydash
 import requests
@@ -91,10 +91,10 @@ class Client:
             if config_file_checker(data=config_data):
                 config_importer()
         # create Cms_nbi_connect vars
-        self.cms_netconf_url = None
-        self.session_id = None
-        self.cms_user_nm = None
-        self.cms_user_pass = None
+        self.cms_netconf_url: Optional[str] = None
+        self.session_id: Optional[str] = None
+        self.cms_user_nm: Optional[str] = None
+        self.cms_user_pass: Optional[str] = None
 
     @property
     def message_id(self) -> str:
@@ -122,7 +122,7 @@ class Client:
         cms_node_ip: str = "localhost",
         uri: str = "",
         http_timeout: int = 1,
-    ) -> None:
+    ) -> Union[str, Tuple[bool, requests.Response], requests.Response]:
         """
         Description
         -----------
@@ -212,7 +212,7 @@ class Client:
                 if resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"] == "0":
                     # Resultcode is 0, the login was successful, the sessionid is saved in memory
                     self.session_id = resp_dict["Envelope"]["Body"]["auth-reply"]["SessionId"]
-                    return resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"]
+                    return str(resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"])
 
                 elif resp_dict["Envelope"]["Body"]["auth-reply"]["ResultCode"] == "6":
                     # Resultcode is 6, the login was unsuccessful, returns false and the request.post object
@@ -226,8 +226,13 @@ class Client:
                 return response
 
     def logout_netconf(
-        self, protocol="http", port="18080", cms_node_ip="localhost", uri="", http_timeout=1
-    ):
+        self, 
+        protocol: str = "http", 
+        port: str = "18080", 
+        cms_node_ip: str = "localhost", 
+        uri: str = "", 
+        http_timeout: int = 1
+    ) -> Any:
         """
         Description
         -----------
@@ -312,7 +317,13 @@ class Client:
                 # other responses will need to be worked out and coded for
                 return response
 
-    def update_config(self, pass_wd="", user_nm="", cms_node_ip="", cms_node_name=""):
+    def update_config(
+        self, 
+        pass_wd: str = "", 
+        user_nm: str = "", 
+        cms_node_ip: str = "", 
+        cms_node_name: str = ""
+    ) -> Any:
         """
         Description
         ___________
@@ -337,7 +348,10 @@ class Client:
         cwd = os.getcwd()
         cf_path = os.path.join(cwd, "../cms_nbi_config.json")
 
-        def config_file_updater(data=self.cms_nbi_config, config_file_path=cf_path):
+        def config_file_updater(
+            data: Dict[str, Any] = self.cms_nbi_config, 
+            config_file_path: str = cf_path
+        ) -> None:
             # function to check if the cms_nbi_config.json file exist in the local dir
             # if it doesn't it will dump the default config to the cms_nbi_config.json file in local dir
             with open(config_file_path, "w") as config_file:
