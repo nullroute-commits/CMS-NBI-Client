@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 # Multi-stage build for minimal image size
 # Requires Docker BuildKit (DOCKER_BUILDKIT=1)
-FROM python:3.13-alpine AS builder
+FROM python:3.14-alpine AS builder
 
 # Install build dependencies
 # Use BuildKit cache mount for package manager cache
@@ -27,7 +27,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 # Production stage
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 
 # Install runtime dependencies only
 RUN apk add --no-cache \
