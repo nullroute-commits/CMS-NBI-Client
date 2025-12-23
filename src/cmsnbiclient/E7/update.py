@@ -265,7 +265,7 @@ class Update:
         # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
         if self.client_object.cms_netconf_url is None:
             raise ValueError("cms_netconf_url is not set on client object")
-        
+
         if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(
@@ -490,7 +490,7 @@ class Update:
         # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
         if self.client_object.cms_netconf_url is None:
             raise ValueError("cms_netconf_url is not set on client object")
-        
+
         if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(
@@ -718,7 +718,7 @@ class Update:
         # TODO: Extract UPDATE HTTP(S) Calls into Class function or property
         if self.client_object.cms_netconf_url is None:
             raise ValueError("cms_netconf_url is not set on client object")
-        
+
         if "https" not in self.client_object.cms_netconf_url[:5]:
             try:
                 response = requests.post(
