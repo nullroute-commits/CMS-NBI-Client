@@ -84,7 +84,7 @@ class Query:
         # ASSIGNING CLASS VARIABLES
         self.network_nm = network_nm
         self.http_timeout = http_timeout
-        
+
         # Initialize optional response storage variables
         self.resp_system_children: Optional[List[Dict[str, Any]]] = None
         self.resp_system_children_discont: Optional[List[Dict[str, Any]]] = None
@@ -194,7 +194,7 @@ class Query:
         """
         if after_filter is None:
             after_filter = {"": ""}
-        
+
         if "type" in after_filter.keys():
             _after = f"""\n<after>\n<type>{after_filter['type']}</type>\n<id>\n<{after_filter['type'].lower()}>{after_filter['id']}<{'/' + after_filter['type'].lower()}>\n</id>\n</after>\n"""
         else:
@@ -292,7 +292,9 @@ class Query:
             else:
                 return response
 
-    def system_children_discont(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
+    def system_children_discont(
+        self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None
+    ) -> Any:
         """
         Description
         -----------
@@ -315,7 +317,7 @@ class Query:
             after_filter = {"": ""}
         if attr_filter is None:
             attr_filter = {"": ""}
-            
+
         if "discont" in after_filter.keys():
             after_filter = f"""<after>
                                 <type>DiscOnt</type>
@@ -443,7 +445,7 @@ class Query:
                         resp_system_discont = self.resp_system_children_discont
                         del self.resp_system_children_discont
                         return resp_system_discont
-                except:
+                except AttributeError:
                     self.resp_system_children_discont = []
                     self.resp_system_children_discont.append(resp_dict)
                     resp_system_discont = self.resp_system_children_discont
@@ -464,7 +466,7 @@ class Query:
                         resp_system_discont = self.resp_system_children_discont
                         del self.resp_system_children_discont
                         return resp_system_discont
-                    except:
+                    except AttributeError:
                         return response
 
                 else:
@@ -472,7 +474,9 @@ class Query:
             else:
                 return response
 
-    def system_children_ontprof(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
+    def system_children_ontprof(
+        self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None
+    ) -> Any:
         """
         Description
         -----------
@@ -583,7 +587,7 @@ class Query:
                 try:
                     if isinstance(self.resp_system_children_ontprof, list):
                         self.resp_system_children_ontprof.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_system_children_ontprof = []
                     self.resp_system_children_ontprof.extend(resp_dict)
                 return self.system_children_ontprof(
@@ -606,7 +610,7 @@ class Query:
                             resp_system_children_ontprof = self.resp_system_children_ontprof
                             del self.resp_system_children_ontprof
                         return resp_system_children_ontprof
-                except:
+                except AttributeError:
                     self.resp_system_children_ontprof = []
                     self.resp_system_children_ontprof.append(resp_dict)
                     resp_system_children_ontprof = self.resp_system_children_ontprof
@@ -615,7 +619,9 @@ class Query:
             else:
                 return response
 
-    def system_children_ontpwe3prof(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
+    def system_children_ontpwe3prof(
+        self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None
+    ) -> Any:
         """
         Description
         -----------
@@ -706,7 +712,7 @@ class Query:
                 try:
                     if isinstance(self.resp_system_children_ontpwe3prof, list):
                         self.resp_system_children_ontpwe3prof.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_system_children_ontpwe3prof = []
                     self.resp_system_children_ontpwe3prof.extend(resp_dict)
                 return self.system_children_ontpwe3prof(
@@ -729,7 +735,7 @@ class Query:
                             resp_system_children_ontpwe3prof = self.resp_system_children_ontpwe3prof
                             del self.resp_system_children_ontpwe3prof
                         return resp_system_children_ontpwe3prof
-                except:
+                except AttributeError:
                     self.resp_system_children_ontpwe3prof = []
                     self.resp_system_children_ontpwe3prof.append(resp_dict)
                     resp_system_children_ontpwe3prof = self.resp_system_children_ontpwe3prof
@@ -738,7 +744,9 @@ class Query:
             else:
                 return response
 
-    def system_children_vlan(self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
+    def system_children_vlan(
+        self, after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None
+    ) -> Any:
         """
         Description
         -----------
@@ -830,7 +838,7 @@ class Query:
                 try:
                     if isinstance(self.resp_system_children_vlan, list):
                         self.resp_system_children_vlan.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_system_children_vlan = []
                     self.resp_system_children_vlan.extend(resp_dict)
                 return self.system_children_vlan(after_filter=last_entry, attr_filter=attr_filter)
@@ -847,7 +855,7 @@ class Query:
                             self.resp_system_children_vlan.extend(resp_dict)
                         else:
                             self.resp_system_children_vlan.append(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_system_children_vlan = []
                     if isinstance(resp_dict, list):
                         self.resp_system_children_vlan.extend(resp_dict)
@@ -868,7 +876,12 @@ class Query:
             else:
                 return response
 
-    def ont_children_ethsvc(self, ont_id: str = "", after_filter: Dict[str, str] = None, attr_filter: Dict[str, str] = None) -> Any:
+    def ont_children_ethsvc(
+        self,
+        ont_id: str = "",
+        after_filter: Dict[str, str] = None,
+        attr_filter: Dict[str, str] = None,
+    ) -> Any:
         """
         Description
         -----------
@@ -1099,7 +1112,7 @@ class Query:
                 try:
                     if isinstance(self.resp_ont_children_ethsvc, list):
                         self.resp_ont_children_ethsvc.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_ont_children_ethsvc = []
                     self.resp_ont_children_ethsvc.extend(resp_dict)
                 return self.ont_children_ethsvc(
@@ -1119,7 +1132,7 @@ class Query:
                                 self.resp_ont_children_ethsvc.extend(resp_dict)
                             else:
                                 self.resp_ont_children_ethsvc.append(resp_dict)
-                    except:
+                    except AttributeError:
                         self.resp_ont_children_ethsvc = []
                         if isinstance(resp_dict, list):
                             self.resp_ont_children_ethsvc.extend(resp_dict)
@@ -1131,7 +1144,7 @@ class Query:
                 try:
                     resp = self.resp_ont_children_ethsvc
                     del self.resp_ont_children_ethsvc
-                except:
+                except AttributeError:
                     resp = response
                 return resp
             else:
@@ -1480,7 +1493,9 @@ class Query:
             else:
                 return response
 
-    def ont_geth(self, ont_id: str = "", ontethge: str = "1") -> Union[requests.Response, Dict[str, Any]]:
+    def ont_geth(
+        self, ont_id: str = "", ontethge: str = "1"
+    ) -> Union[requests.Response, Dict[str, Any]]:
         """
         Description
         -----------
@@ -1731,7 +1746,7 @@ class Query:
                 try:
                     if isinstance(self.resp_show_ont, list):
                         self.resp_show_ont.append(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_show_ont = []
                     self.resp_show_ont.append(resp_dict)
                 return self.show_ont(after_filter=_after_filter_, action_args=action_args)
@@ -1748,7 +1763,7 @@ class Query:
                         resp_show_ont = self.resp_show_ont
                         del self.resp_show_ont
                         return resp_show_ont
-                except:
+                except AttributeError:
                     self.resp_show_ont = []
                     self.resp_show_ont.append(resp_dict)
                     resp_show_ont = self.resp_show_ont
@@ -1763,7 +1778,7 @@ class Query:
                         resp_show_ont = self.resp_show_ont
                         del self.resp_show_ont
                         return resp_show_ont
-                except:
+                except AttributeError:
                     return response
 
             else:
@@ -1991,7 +2006,7 @@ class Query:
                 try:
                     if isinstance(self.resp_show_vlan_members, list):
                         self.resp_show_vlan_members.extend(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_show_vlan_members = []
                     self.resp_show_vlan_members.extend(resp_dict)
                 return self.show_vlan_members(vlan_id=vlan_id, after_filter=__after_filter)
@@ -2007,7 +2022,7 @@ class Query:
                             self.resp_show_vlan_members.extend(resp_dict)
                         else:
                             self.resp_show_vlan_members.append(resp_dict)
-                except:
+                except AttributeError:
                     self.resp_show_vlan_members = []
                     if isinstance(resp_dict, list):
                         self.resp_show_vlan_members.extend(resp_dict)
