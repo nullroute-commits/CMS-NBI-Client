@@ -37,7 +37,6 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install --with docs
-        poetry run pip install mkdocs-material mkdocstrings[python] pymdown-extensions
     
     - name: Build documentation
       run: poetry run mkdocs build
