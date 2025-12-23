@@ -1,7 +1,5 @@
 # CMS-NBI-Client Agent Configuration
 
-> **Note**: This file is maintained for reference. The active agent initialization file used by GitHub Copilot is located at `.github/agents/init.md`.
-
 This document provides comprehensive context and instructions for AI agents working on the CMS-NBI-Client repository. It includes project overview, architecture, conventions, and best practices.
 
 ## Table of Contents
