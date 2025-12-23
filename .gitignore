@@ -87,7 +87,8 @@ ipython_config.py
 Pipfile.lock
 
 # poetry
-poetry.lock
+# Note: poetry.lock is NOT ignored because it's required for Docker builds
+# and ensures reproducible dependency installation
 
 # PEP 582
 __pypackages__/
