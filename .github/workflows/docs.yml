@@ -1,5 +1,10 @@
 name: Deploy Documentation
 
+# NOTE: This workflow requires GitHub Pages to be enabled in repository settings:
+# 1. Go to Settings > Pages
+# 2. Set Source to "GitHub Actions"
+# 3. The 'github-pages' environment will be created automatically
+
 on:
   push:
     branches: [ main ]

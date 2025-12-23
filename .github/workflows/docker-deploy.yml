@@ -1,5 +1,11 @@
 name: Docker Deploy
 
+# NOTE: This workflow requires the following secrets to be configured:
+# For Docker Hub: DOCKER_USERNAME, DOCKER_PASSWORD
+# For Staging: STAGING_HOST, STAGING_USER, STAGING_SSH_KEY
+# For Production: PROD_HOST, PROD_USER, PROD_SSH_KEY
+# GITHUB_TOKEN is automatically provided by GitHub Actions
+
 on:
   push:
     tags:
@@ -99,16 +105,16 @@ jobs:
         
         # Copy docker compose files
         scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-          docker compose.prod.yml \
+          docker-compose.prod.yml \
           $DEPLOY_USER@$DEPLOY_HOST:/opt/cms-nbi-client/
         
-        # Deploy using docker compose
+        # Deploy using docker compose (v2)
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
           $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
           cd /opt/cms-nbi-client
           export VERSION=${{ github.ref_name }}
-          docker compose -f docker compose.prod.yml pull
-          docker compose -f docker compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
           docker system prune -f
         EOF
 
@@ -134,26 +140,26 @@ jobs:
         
         # Copy docker compose files
         scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-          docker compose.prod.yml \
+          docker-compose.prod.yml \
           $DEPLOY_USER@$DEPLOY_HOST:/opt/cms-nbi-client/
         
-        # Deploy using docker compose with zero downtime
+        # Deploy using docker compose (v2) with zero downtime
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
           $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
           cd /opt/cms-nbi-client
           export VERSION=${{ github.ref_name }}
           
           # Pull new images
-          docker compose -f docker compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml pull
           
           # Start new containers alongside old ones
-          docker compose -f docker compose.prod.yml up -d --no-deps --scale app=2 app
+          docker compose -f docker-compose.prod.yml up -d --no-deps --scale app=2 app
           
           # Wait for health checks
           sleep 30
           
           # Remove old containers
-          docker compose -f docker compose.prod.yml up -d --no-deps --remove-orphans app
+          docker compose -f docker-compose.prod.yml up -d --no-deps --remove-orphans app
           
           # Cleanup
           docker system prune -f
