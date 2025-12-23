@@ -55,6 +55,8 @@ mkdocs-gen-files = "^0.5.0"
 mkdocs-literate-nav = "^0.6.0"
 mkdocs-section-index = "^0.3.8"
 mike = "^2.0.0"
+griffe = ">=0.47,<0.50"
+mkdocs-autorefs = ">=1.0,<1.4"
 
 [build-system]
 requires = ["poetry-core"]

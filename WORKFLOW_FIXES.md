@@ -37,9 +37,14 @@ The workflow will fail without these GitHub secrets configured:
 
 **Problems Found:**
 - "startup_failure" status indicates GitHub Pages is not properly configured
-- Missing documentation about GitHub Pages requirements
+- Package version conflicts: The workflow was using `pip install` after `poetry install`, which overwrote poetry-managed packages with incompatible versions (specifically mkdocs-autorefs 1.4.x being incompatible with mkdocstrings 0.24.x)
 
 **Changes Made:**
+- ✅ Removed conflicting `pip install` command that was causing version incompatibilities
+- ✅ Added explicit version constraints to `pyproject.toml` for:
+  - `griffe = ">=0.47,<0.50"` - Required for mkdocstrings-python compatibility
+  - `mkdocs-autorefs = ">=1.0,<1.4"` - Required for mkdocstrings compatibility
+- ✅ Updated `poetry.lock` with proper dependency resolution
 - ✅ Added clear documentation at the top of the workflow explaining GitHub Pages setup requirements
 
 **Required Configuration:**
@@ -51,6 +56,15 @@ This workflow requires GitHub Pages to be enabled:
 
 Without this configuration, the workflow will continue to fail with "startup_failure" status.
 
+### 3. Release Workflow (`release.yml`)
+
+**Problems Found:**
+- Workflow fails at PyPI publish step due to missing API token
+
+**Required Configuration:**
+The workflow requires the following secret:
+- `PYPI_API_TOKEN` - PyPI API token for publishing packages
+
 ## Summary
 
 ### Docker Deploy Workflow
@@ -59,9 +73,14 @@ Without this configuration, the workflow will continue to fail with "startup_fai
 - **Expected Outcome:** Once secrets are configured, the workflow will successfully build and push Docker images
 
 ### Documentation Workflow
-- **Status:** ✅ Documentation added
+- **Status:** ✅ Code fixes complete
 - **Next Steps:** Enable GitHub Pages in repository settings
 - **Expected Outcome:** Once GitHub Pages is enabled, the workflow will successfully build and deploy documentation
+
+### Release Workflow
+- **Status:** ⚠️ Requires secret configuration
+- **Next Steps:** Add `PYPI_API_TOKEN` secret in repository settings
+- **Expected Outcome:** Once the token is configured, releases will publish to PyPI
 
 ## Testing Recommendations
 
@@ -75,8 +94,13 @@ Without this configuration, the workflow will continue to fail with "startup_fai
    - Push to main branch or manually trigger via workflow_dispatch
    - Verify documentation builds successfully
 
+3. **Release Workflow:**
+   - Add PyPI API token
+   - Create a test release to verify publishing works
+
 ## Additional Notes
 
 - The docker-compose.prod.yml file exists in the repository with correct hyphenated naming
 - All docker compose v2 commands now use the correct `docker compose` (space) syntax
 - The workflow files now include helpful comments explaining requirements
+- Documentation builds have warnings about missing docs files in mkdocs.yml nav section - these are not errors but indicate planned documentation that hasn't been written yet
