@@ -13,6 +13,9 @@
 
 **CMS-NBI-Client** is a modern, async-first Python client for interacting with Calix Management System (CMS) Northbound Interface (NBI). Built with performance, security, and developer experience in mind.
 
+!!! warning "Feature availability"
+    The modern `CMSClient` currently provides authentication plus synchronous REST helper calls. NETCONF/E7 operations are available only through the legacy `Client` and `E7Operations` classes and are **not** exposed on `CMSClient`. See [Quick Start → Using legacy NETCONF/E7 operations](guides/quickstart.md#using-legacy-netconfe7-operations) for the supported workflow.
+
 !!! warning "Disclaimer"
     This package is not owned, supported, or endorsed by Calix. It's an independent implementation for interacting with CMS NBIs.
 
@@ -52,28 +55,15 @@ async def main():
         }
     )
     
-    # Use async context manager
     async with CMSClient(config) as client:
-        # Query ONT
-        ont = await client.e7.query_ont(
-            network_name="NTWK-1",
-            ont_id="123"
+        devices = client.rest.query_devices(
+            cms_user_nm=config.credentials.username,
+            cms_user_pass=config.credentials.password.get_secret_value(),
+            cms_node_ip=config.connection.host,
+            device_type="e7",
         )
-        print(f"ONT Status: {ont['admin_state']}")
-        
-        # Create multiple ONTs concurrently
-        tasks = [
-            client.e7.create_ont(
-                network_name="NTWK-1",
-                ont_id=str(i),
-                admin_state="enabled"
-            )
-            for i in range(10)
-        ]
-        results = await asyncio.gather(*tasks)
-        print(f"Created {len(results)} ONTs")
+        print(f"Found {len(devices)} devices")
 
-# Run the async function
 asyncio.run(main())
 ```
 
@@ -103,8 +93,8 @@ graph TB
     
     subgraph "CMS-NBI-Client"
         B[CMSClient]
-        C[E7 Operations]
-        D[REST Operations]
+    C[E7 Operations (legacy only)]
+    D[REST Operations]
         E[Config Management]
         F[Security Layer]
         G[Transport Layer]

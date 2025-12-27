@@ -8,7 +8,7 @@ Modern async Python client for Calix Management System (CMS) Northbound Interfac
 
 **Note:** This package is not owned, supported, or endorsed by Calix. It's an independent implementation for interacting with CMS NBIs.
 
-> **Important:** This library is currently in a transition phase. The modern async CMSClient provides the foundation and configuration management, while the legacy Client class provides the full operational functionality. Both are available and can be used together. See the [Examples](./Examples) folder for working code samples.
+> **Important:** This library is currently in a transition phase. The modern async CMSClient provides configuration, authentication, and REST helpers. NETCONF/E7 operations are only available through the legacy `Client` + `E7Operations` classes and are **not** exposed on `CMSClient`.
 
 ## Features
 
@@ -37,7 +37,7 @@ pip install cms-nbi-client
 import asyncio
 from cmsnbiclient import CMSClient, Config
 
-# Modern async usage
+# Modern async usage (REST device query)
 async def main():
     config = Config(
         credentials={
@@ -50,29 +50,34 @@ async def main():
     )
     
     async with CMSClient(config) as client:
-        # Note: High-level methods are available through the legacy client
-        # For modern async operations, use the underlying E7 modules directly
-        # Example using legacy operations:
-        
-        # Create ONT using E7 operations
-        create_op = client.e7.create
-        result = await create_op.ont(
-            network_nm="NTWK-1",
-            ont_id="123",
-            admin_state="enabled"
+        # REST operations are synchronous today
+        devices = client.rest.query_devices(
+            cms_user_nm=config.credentials.username,
+            cms_user_pass=config.credentials.password.get_secret_value(),
+            cms_node_ip=config.connection.host,
+            device_type="e7",
         )
-        print(result)
+        print(devices)
 
 # Run async code
 asyncio.run(main())
 
-# Synchronous usage (backward compatible)
-# Note: For most operations, use the LegacyClient for now
+# NETCONF/E7 operations (legacy, synchronous)
 from cmsnbiclient import LegacyClient
+# Note: the E7 package name is capitalized in the module path
+from cmsnbiclient.E7 import E7Operations
 
-legacy_client = LegacyClient()
-# Configure and use legacy client for production operations
-print("Use LegacyClient for full feature compatibility")
+legacy = LegacyClient()
+legacy.login_netconf(
+    cms_user_nm="your_username",
+    cms_user_pass="your_password",
+    cms_node_ip="cms.example.com",
+    uri=legacy.cms_nbi_config["cms_netconf_uri"]["e7"],
+)
+
+e7 = E7Operations(legacy)
+ont_result = e7.create.ont(network_nm="NTWK-1", ont_id="123")
+legacy.logout_netconf(uri=legacy.cms_nbi_config["cms_netconf_uri"]["e7"])
 ```
 
 ### Configuration

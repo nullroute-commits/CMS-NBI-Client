@@ -1,5 +1,8 @@
 # Basic Usage Guide
 
+!!! warning "Legacy-focused examples"
+    The snippets below describe the planned E7/NETCONF API and reference `client.e7.*`. The modern `CMSClient` in this repository **does not** expose an `e7` attribute. Use the legacy `Client` together with `cmsnbiclient.E7.E7Operations` for NETCONF operations, or see the Quickstart for the current REST helper example.
+
 This guide covers common usage patterns and operations with CMS-NBI-Client.
 
 ## Client Lifecycle

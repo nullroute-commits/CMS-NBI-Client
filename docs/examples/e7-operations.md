@@ -1,5 +1,8 @@
 # E7 Operations Examples
 
+!!! warning "Requires legacy client"
+    The modern `CMSClient` does not expose `e7` operations. Use the legacy `Client` plus `cmsnbiclient.E7.E7Operations` after calling `login_netconf` to run these examples.
+
 This guide provides practical examples of E7 operations using CMS-NBI-Client.
 
 ## ONT Operations

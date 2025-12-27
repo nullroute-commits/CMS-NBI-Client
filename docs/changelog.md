@@ -5,6 +5,9 @@ All notable changes to CMS-NBI-Client are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+!!! note "Current implementation status"
+    The async `CMSClient` in this repository currently exposes authentication and REST helpers only. NETCONF/E7 operations described below remain available via the legacy client and are not wired into `CMSClient`.
+
 ## [2.0.0] - 2024-01-20
 
 ### Added 🎉
