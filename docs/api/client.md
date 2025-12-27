@@ -23,140 +23,79 @@
 
 ## Usage Examples
 
-### Async Client Usage
+!!! warning "E7 operations not exposed on `CMSClient`"
+    The async `CMSClient` only authenticates and exposes synchronous REST helpers through `client.rest`. NETCONF/E7 operations live in the legacy client (`cmsnbiclient.client.Client` + `cmsnbiclient.E7.E7Operations`).
+
+### Async CMSClient + REST devices
 
 ```python
 import asyncio
 from cmsnbiclient import CMSClient, Config
 
 async def main():
-    # Configure client
     config = Config(
-        credentials={
-            "username": "admin",
-            "password": "secret"
-        },
-        connection={
-            "host": "cms.example.com"
-        }
+        credentials={"username": "admin", "password": "secret"},
+        connection={"host": "cms.example.com"},
     )
-    
-    # Use as async context manager
-    async with CMSClient(config) as client:
-        # Perform operations
-        ont = await client.e7.query_ont(
-            network_name="NTWK-1",
-            ont_id="12345"
-        )
-        print(ont)
 
-# Run async function
+    async with CMSClient(config) as client:
+        # REST helpers are synchronous today
+        devices = client.rest.query_devices(
+            cms_user_nm=config.credentials.username,
+            cms_user_pass=config.credentials.password.get_secret_value(),
+            cms_node_ip=config.connection.host,
+            device_type="e7",
+        )
+        print(devices)
+
 asyncio.run(main())
 ```
 
-### Sync Client Usage
+### Sync wrapper (lifecycle only)
+
+`SyncCMSClient` sets up and tears down an internal `CMSClient`. Operations must be invoked on the underlying async client stored on `_client`.
 
 ```python
 from cmsnbiclient import CMSClient, Config
 
-# Configure client
 config = Config(
-    credentials={
-        "username": "admin",
-        "password": "secret"
-    },
-    connection={
-        "host": "cms.example.com"
-    }
+    credentials={"username": "admin", "password": "secret"},
+    connection={"host": "cms.example.com"},
 )
 
-# Use sync wrapper
-with CMSClient.sync(config) as client:
-    # All operations work without await
-    ont = client.e7.query_ont(
-        network_name="NTWK-1",
-        ont_id="12345"
+with CMSClient.sync(config) as wrapper:
+    devices = wrapper._client.rest.query_devices(  # synchronous REST call
+        cms_user_nm=config.credentials.username,
+        cms_user_pass=config.credentials.password.get_secret_value(),
+        cms_node_ip=config.connection.host,
     )
-    print(ont)
+    print(devices)
 ```
 
-### Manual Session Management
+### Legacy NETCONF/E7 usage
 
 ```python
-# For cases where context manager isn't suitable
-client = CMSClient(config)
+from cmsnbiclient import LegacyClient
+from cmsnbiclient.E7 import E7Operations  # Package name is capitalized
 
-try:
-    # Manual authentication
-    await client.authenticate()
-    
-    # Perform operations
-    result = await client.e7.query_ont(
-        network_name="NTWK-1",
-        ont_id="12345"
-    )
-    
-finally:
-    # Always close when done
-    await client.close()
-```
-
-### Error Handling
-
-```python
-from cmsnbiclient.exceptions import (
-    AuthenticationError,
-    ConnectionError,
-    OperationError
+legacy = LegacyClient()
+legacy.login_netconf(
+    cms_user_nm="admin",
+    cms_user_pass="secret",
+    cms_node_ip="cms.example.com",
+    uri=legacy.cms_nbi_config["cms_netconf_uri"]["e7"],
 )
 
-async with CMSClient(config) as client:
-    try:
-        result = await client.e7.create_ont(
-            network_name="NTWK-1",
-            ont_id="12345",
-            admin_state="enabled"
-        )
-    except AuthenticationError as e:
-        print(f"Authentication failed: {e}")
-    except ConnectionError as e:
-        print(f"Connection failed: {e}")
-    except OperationError as e:
-        print(f"Operation failed: {e}")
-```
-
-### Concurrent Operations
-
-```python
-import asyncio
-
-async with CMSClient(config) as client:
-    # Create multiple ONTs concurrently
-    tasks = []
-    for i in range(100):
-        task = client.e7.create_ont(
-            network_name="NTWK-1",
-            ont_id=str(i),
-            admin_state="enabled"
-        )
-        tasks.append(task)
-    
-    # Wait for all to complete
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    
-    # Process results
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            print(f"ONT {i} failed: {result}")
-        else:
-            print(f"ONT {i} created successfully")
+e7 = E7Operations(legacy)
+ont = e7.create.ont(network_nm="NTWK-1", ont_id="12345")
+legacy.logout_netconf(uri=legacy.cms_nbi_config["cms_netconf_uri"]["e7"])
 ```
 
 ## Client Attributes
 
 ### config
 
-The configuration object passed during initialization:
+The Pydantic configuration object passed during initialization:
 
 ```python
 client = CMSClient(config)
@@ -164,26 +103,17 @@ print(client.config.connection.host)
 print(client.config.performance.cache_ttl)
 ```
 
-### e7
-
-E7 operations handler:
-
-```python
-# Access E7-specific operations
-await client.e7.create_ont(...)
-await client.e7.query_ont(...)
-await client.e7.update_ont(...)
-await client.e7.delete_ont(...)
-```
-
 ### rest
 
-REST operations handler:
+REST operations handler (methods are synchronous):
 
 ```python
-# Access REST API operations
-await client.rest.get_devices()
-await client.rest.get_device_info(device_id="123")
+devices = client.rest.query_devices(
+    cms_user_nm=config.credentials.username,
+    cms_user_pass=config.credentials.password.get_secret_value(),
+    cms_node_ip=config.connection.host,
+    device_type="e7",
+)
 ```
 
 ### logger
@@ -191,11 +121,7 @@ await client.rest.get_device_info(device_id="123")
 Structured logger instance:
 
 ```python
-# Log additional context
-client.logger.info("Custom operation", 
-    operation="bulk_create",
-    count=100
-)
+client.logger.info("rest.devices", target_host=client.config.connection.host)
 ```
 
 ## Advanced Usage
@@ -205,57 +131,27 @@ client.logger.info("Custom operation",
 ```python
 from cmsnbiclient.core.transport import AsyncHTTPTransport
 
-# Create custom transport
 transport = AsyncHTTPTransport(config)
-
-# Configure custom settings
-transport._session.headers.update({
-    "X-Custom-Header": "value"
-})
-
-# Use with client
 client._transport = transport
 ```
 
 ### Session Reuse
 
 ```python
-# Keep client alive for multiple operations
 client = CMSClient(config)
 await client.authenticate()
 
-# Reuse session for multiple operations
-for network in ["NTWK-1", "NTWK-2", "NTWK-3"]:
-    onts = await client.e7.query_ont(network_name=network)
-    print(f"{network}: {len(onts)} ONTs")
+devices = client.rest.query_devices(
+    cms_user_nm=config.credentials.username,
+    cms_user_pass=config.credentials.password.get_secret_value(),
+    cms_node_ip=config.connection.host,
+)
 
-# Close when done
 await client.close()
-```
-
-### Performance Monitoring
-
-```python
-import time
-
-async with CMSClient(config) as client:
-    start = time.time()
-    
-    # Perform operation
-    result = await client.e7.query_ont(
-        network_name="NTWK-1"
-    )
-    
-    duration = time.time() - start
-    client.logger.info("Query completed",
-        duration=duration,
-        result_count=len(result)
-    )
 ```
 
 ## See Also
 
 - [Configuration API](config.md) - Configuration options
-- [E7 Operations API](e7.md) - E7-specific operations
-- [REST Operations API](rest.md) - REST API operations
+- [Legacy E7 examples](../examples/e7-operations.md) - Requires `LegacyClient`
 - [Base Classes](core.md) - Core components
