@@ -3439,7 +3439,6 @@ description = "Settings management using Pydantic"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version <= \"3.11\""
 files = [
     {file = "pydantic_settings-2.11.0-py3-none-any.whl", hash = "sha256:fe2cea3413b9530d10f3a5875adffb17ada5c1e1bab0b2885546d7310415207c"},
     {file = "pydantic_settings-2.11.0.tar.gz", hash = "sha256:d0e87a1c7d33593beb7194adb8470fc426e95ba02af83a0f23474a04c9a08180"},
@@ -3458,40 +3457,15 @@ toml = ["tomli (>=2.0.1)"]
 yaml = ["pyyaml (>=6.0.1)"]
 
 [[package]]
-name = "pydantic-settings"
-version = "2.12.0"
-description = "Settings management using Pydantic"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-markers = "python_version > \"3.11\""
-files = [
-    {file = "pydantic_settings-2.12.0-py3-none-any.whl", hash = "sha256:fddb9fd99a5b18da837b29710391e945b1e30c135477f484084ee513adb93809"},
-    {file = "pydantic_settings-2.12.0.tar.gz", hash = "sha256:005538ef951e3c2a68e1c08b292b5f2e71490def8589d4221b95dab00dafcfd0"},
-]
-
-[package.dependencies]
-pydantic = ">=2.7.0"
-python-dotenv = ">=0.21.0"
-typing-inspection = ">=0.4.0"
-
-[package.extras]
-aws-secrets-manager = ["boto3 (>=1.35.0)", "boto3-stubs[secretsmanager]"]
-azure-key-vault = ["azure-identity (>=1.16.0)", "azure-keyvault-secrets (>=4.8.0)"]
-gcp-secret-manager = ["google-cloud-secret-manager (>=2.23.1)"]
-toml = ["tomli (>=2.0.1)"]
-yaml = ["pyyaml (>=6.0.1)"]
-
-[[package]]
 name = "pydash"
-version = "8.0.5"
+version = "8.0.6"
 description = "The kitchen sink of Python utility libraries for doing \"stuff\" in a functional way. Based on the Lo-Dash Javascript library."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "pydash-8.0.5-py3-none-any.whl", hash = "sha256:b2625f8981862e19911daa07f80ed47b315ce20d9b5eb57aaf97aaf570c3892f"},
-    {file = "pydash-8.0.5.tar.gz", hash = "sha256:7cc44ebfe5d362f4f5f06c74c8684143c5ac481376b059ff02570705523f9e2e"},
+    {file = "pydash-8.0.6-py3-none-any.whl", hash = "sha256:ee70a81a5b292c007f28f03a4ee8e75c1f5d7576df5457b836ec7ab2839cc5d0"},
+    {file = "pydash-8.0.6.tar.gz", hash = "sha256:b2821547e9723f69cf3a986be4db64de41730be149b2641947ecd12e1e11025a"},
 ]
 
 [package.dependencies]
