@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import requests
 
@@ -31,13 +31,48 @@ class Query:
             )
         self.cms_nbi_connect_object = cms_nbi_connect_object
 
+    def _get_legacy_defaults(self) -> Tuple[str, str, str, str, str]:
+        """Resolve protocol, port, username, password, and host for legacy clients."""
+        config = self.cms_nbi_connect_object.cms_nbi_config
+        default_node = config["cms_nodes"]["default"]
+        connection = default_node["connection"]
+        credentials = default_node["cms_creds"]
+        protocol = connection["protocol"]["http"]
+        return (
+            protocol,
+            connection["rest_http_port"],
+            credentials["user_nm"],
+            credentials["pass_wd"],
+            connection["cms_node_ip"],
+        )
+
+    def _get_modern_defaults(self) -> Tuple[str, str, str, str, str]:
+        """Resolve protocol, port, username, password, and host for CMSClient."""
+        config = self.cms_nbi_connect_object.config
+        return (
+            config.connection.protocol,
+            str(config.connection.rest_port),
+            config.credentials.username,
+            config.credentials.password.get_secret_value(),
+            config.connection.host,
+        )
+
+    def _get_rest_uri(self) -> str:
+        """Resolve the REST devices URI for the current client type."""
+        if (
+            hasattr(self.cms_nbi_connect_object, "cms_nbi_config")
+            and "cms_nodes" in self.cms_nbi_connect_object.cms_nbi_config
+        ):
+            return self.cms_nbi_connect_object.cms_nbi_config["cms_rest_uri"]["devices"]
+        return "/restnbi/devices?deviceType="
+
     def device(
         self,
-        protocol: str = "http",
-        port: str = "8080",
-        cms_user_nm: str = "rootgod",
-        cms_user_pass: str = "root",
-        cms_node_ip: str = "localhost",
+        protocol: Optional[str] = None,
+        port: Optional[str] = None,
+        cms_user_nm: Optional[str] = None,
+        cms_user_pass: Optional[str] = None,
+        cms_node_ip: Optional[str] = None,
         device_type: str = "",
         http_timeout: int = 1,
     ) -> Any:
@@ -101,25 +136,42 @@ class Query:
                                device_type='c7',
                                http_timeout=5)
         """
-        # Handle both Client and CMSClient types
-        if hasattr(self.cms_nbi_connect_object, "cms_nbi_config"):
-            config = self.cms_nbi_connect_object.cms_nbi_config
+        if (
+            hasattr(self.cms_nbi_connect_object, "cms_nbi_config")
+            and "cms_nodes" in self.cms_nbi_connect_object.cms_nbi_config
+        ):
+            (
+                default_protocol,
+                default_port,
+                default_user,
+                default_password,
+                default_host,
+            ) = self._get_legacy_defaults()
         else:
-            # Fallback for CMSClient or other types
-            config = getattr(self.cms_nbi_connect_object, "config", {}).get("cms_rest_uri", {})
+            (
+                default_protocol,
+                default_port,
+                default_user,
+                default_password,
+                default_host,
+            ) = self._get_modern_defaults()
 
-        if isinstance(config, dict) and "cms_rest_uri" in config:
-            uri = config["cms_rest_uri"]["devices"]
-        else:
-            uri = "/restnbi/devices?deviceType="  # Default fallback
+        resolved_protocol = protocol or default_protocol
+        resolved_port = port or default_port
+        resolved_user = cms_user_nm or default_user
+        resolved_password = cms_user_pass or default_password
+        resolved_host = cms_node_ip or default_host
+        uri = self._get_rest_uri()
 
-        cms_rest_url = f"""{protocol}://{cms_node_ip}:{port}{uri}{device_type}&limit=9999"""
+        cms_rest_url = (
+            f"{resolved_protocol}://{resolved_host}:{resolved_port}{uri}{device_type}&limit=9999"
+        )
 
         payload = ""
 
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": f"CMS_NBI_CONNECT-{cms_user_nm}",
+            "User-Agent": f"CMS_NBI_CONNECT-{resolved_user}",
         }
 
         try:
@@ -127,13 +179,14 @@ class Query:
                 url=cms_rest_url,
                 headers=headers,
                 data=payload,
-                auth=(cms_user_nm, cms_user_pass),
+                auth=(resolved_user, resolved_password),
                 timeout=http_timeout,
             )
         except requests.exceptions.Timeout as e:
             raise e
 
         if response.status_code == 200:
-            return response.json()["data"]
+            body: Dict[str, Any] = response.json()
+            return body.get("data") or body.get("devices") or body
         else:
             return response

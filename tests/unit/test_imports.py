@@ -93,3 +93,19 @@ class TestBasicFunctionality:
         # Just test that the class can be imported and basic config works
         assert CMSClient is not None
         assert config is not None
+
+    def test_client_exposes_legacy_compatibility(self):
+        """Test that CMSClient exposes documented compatibility helpers."""
+        from cmsnbiclient import CMSClient, Config
+
+        config = Config(
+            credentials={"username": "test", "password": "test"},
+            connection={"host": "localhost", "verify_ssl": False},
+        )
+
+        client = CMSClient(config)
+
+        assert client.e7 is not None
+        assert client.rest is not None
+        assert client.cms_netconf_url.endswith("/cmsexc/ex/netconf")
+        assert client.cms_nbi_config["cms_netconf_uri"]["e7"] == "/cmsexc/ex/netconf"

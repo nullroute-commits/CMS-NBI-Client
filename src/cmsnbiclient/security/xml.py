@@ -1,5 +1,5 @@
 from typing import Any, Dict, Union
-from xml.etree.ElementTree import Element
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 import defusedxml.ElementTree as ET
 import structlog
@@ -74,5 +74,41 @@ class SecureXMLHandler:
 
     def build(self, data: Dict[str, Any]) -> str:
         """Build XML from dictionary using templates"""
-        # Implementation using lxml builder for safety
-        raise NotImplementedError("XML building not yet implemented")
+        if len(data) != 1:
+            raise ValueError("XML data must contain exactly one root element")
+
+        root_name, root_value = next(iter(data.items()))
+        root = Element(root_name)
+        self._dict_to_element(root, root_value)
+        return tostring(root, encoding="unicode")
+
+    def _dict_to_element(self, element: Element, value: Any) -> None:
+        """Recursively convert a dictionary value into XML elements."""
+        if isinstance(value, dict):
+            attributes = value.get("@attributes", {})
+            for key, attr_value in attributes.items():
+                element.set(key, str(attr_value))
+
+            if "#text" in value and value["#text"] is not None:
+                element.text = str(value["#text"])
+
+            for child_name, child_value in value.items():
+                if child_name in {"@attributes", "#text"}:
+                    continue
+
+                if isinstance(child_value, list):
+                    for item in child_value:
+                        child = SubElement(element, child_name)
+                        self._dict_to_element(child, item)
+                else:
+                    child = SubElement(element, child_name)
+                    self._dict_to_element(child, child_value)
+            return
+
+        if value is not None:
+            element.text = str(value)
+
+
+def parse_xml_safely(xml_string: str) -> Dict[str, Any]:
+    """Parse XML with the repository's secure XML handler."""
+    return SecureXMLHandler().parse(xml_string)

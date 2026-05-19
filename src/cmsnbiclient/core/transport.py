@@ -5,8 +5,9 @@ from typing import Dict, Optional
 import aiohttp
 import certifi
 import structlog
-from aiohttp import ClientTimeout, TCPConnector
+from aiohttp import ClientResponse, ClientTimeout, TCPConnector
 
+from ..exceptions import ConnectionError, NetworkError, TimeoutError
 from .circuit_breaker import CircuitBreaker
 from .config import Config
 
@@ -70,7 +71,7 @@ class AsyncHTTPTransport:
         data: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
         timeout: Optional[float] = None,
-    ) -> aiohttp.ClientResponse:
+    ) -> ClientResponse:
         """Execute HTTP request with circuit breaker"""
         if not self._session:
             await self.initialize()
@@ -93,16 +94,25 @@ class AsyncHTTPTransport:
         headers: Optional[Dict[str, str]] = None,
         auth: Optional[aiohttp.BasicAuth] = None,
         timeout: Optional[ClientTimeout] = None,
-    ) -> aiohttp.ClientResponse:
+    ) -> ClientResponse:
         """Execute actual HTTP request"""
         if self._session is None:
             raise RuntimeError("Transport not initialized. Call initialize() first.")
 
-        async with self._session.request(
-            method=method, url=url, data=data, headers=headers, auth=auth, timeout=timeout
-        ) as response:
+        try:
+            response = await self._session.request(
+                method=method, url=url, data=data, headers=headers, auth=auth, timeout=timeout
+            )
             response.raise_for_status()
             return response
+        except asyncio.TimeoutError as exc:
+            raise TimeoutError(f"Request timed out for {method} {url}") from exc
+        except aiohttp.ClientResponseError as exc:
+            raise ConnectionError(
+                f"HTTP {exc.status} error for {method} {url}: {exc.message}"
+            ) from exc
+        except aiohttp.ClientError as exc:
+            raise NetworkError(f"Request failed for {method} {url}: {exc}") from exc
 
     async def close(self) -> None:
         """Close transport connections"""

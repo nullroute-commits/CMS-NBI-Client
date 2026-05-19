@@ -4,16 +4,16 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/cms-nbi-client.svg)](https://pypi.org/project/cms-nbi-client/)
 [![License](https://img.shields.io/github/license/somenetworking/CMS-NBI-Client.svg)](https://github.com/somenetworking/CMS-NBI-Client/blob/main/LICENSE)
 
-Modern async Python client for Calix Management System (CMS) Northbound Interface (NBI) with full HTTPS support, connection pooling, circuit breakers, and structured logging.
+Modern Python client for Calix Management System (CMS) Northbound Interface (NBI) with an async transport layer, structured logging, and legacy E7 compatibility.
 
 **Note:** This package is not owned, supported, or endorsed by Calix. It's an independent implementation for interacting with CMS NBIs.
 
-> **Important:** This library is currently in a transition phase. The modern async CMSClient provides the foundation and configuration management, while the legacy Client class provides the full operational functionality. Both are available and can be used together. See the [Examples](./Examples) folder for working code samples.
+> **Important:** This library is currently in a transition phase. `CMSClient` provides configuration, authentication, transport, REST helpers, and legacy E7 compatibility shims. The legacy `Client` class still owns most production E7 behavior. Prefer the [Examples](./Examples) folder for fully working end-to-end E7 samples.
 
 ## Features
 
 - **Modern Async/Await**: Built on aiohttp for high-performance async operations
-- **HTTPS Support**: Full TLS/SSL support with certificate validation
+- **HTTPS Support**: Modern transport supports TLS/SSL; legacy E7 coverage is still being completed
 - **Connection Pooling**: Reuse connections for better performance
 - **Circuit Breaker**: Automatic failure detection and recovery
 - **Structured Logging**: Rich logs with structlog for better debugging
@@ -21,7 +21,7 @@ Modern async Python client for Calix Management System (CMS) Northbound Interfac
 - **Secure Storage**: Encrypted credential storage using system keyring
 - **XML Security**: Protection against XXE and other XML attacks
 - **Comprehensive Testing**: High test coverage with pytest
-- **Backward Compatible**: Sync wrapper for legacy code
+- **Backward Compatible**: Sync wrapper plus legacy E7 compatibility facade
 
 ## Quick Start
 
@@ -50,29 +50,18 @@ async def main():
     )
     
     async with CMSClient(config) as client:
-        # Note: High-level methods are available through the legacy client
-        # For modern async operations, use the underlying E7 modules directly
-        # Example using legacy operations:
-        
-        # Create ONT using E7 operations
-        create_op = client.e7.create
-        result = await create_op.ont(
-            network_nm="NTWK-1",
-            ont_id="123",
-            admin_state="enabled"
-        )
-        print(result)
+        devices = client.rest.query.device(device_type="e7")
+        print(devices)
 
 # Run async code
 asyncio.run(main())
 
 # Synchronous usage (backward compatible)
-# Note: For most operations, use the LegacyClient for now
 from cmsnbiclient import LegacyClient
 
 legacy_client = LegacyClient()
-# Configure and use legacy client for production operations
-print("Use LegacyClient for full feature compatibility")
+# Configure and use LegacyClient for full E7 feature coverage
+print("Use LegacyClient for end-to-end E7 workflows")
 ```
 
 ### Configuration
@@ -130,6 +119,12 @@ setup_logging(log_level="DEBUG", json_logs=False)
 ## Documentation
 
 For detailed documentation and examples, see the [/Examples](./Examples) folder.
+
+### Current API Status
+
+- `CMSClient`: async authentication, transport management, REST helpers, and compatibility access to legacy E7 handlers
+- `LegacyClient`: primary path for complete E7 NETCONF workflows
+- Documentation under `docs/` may still describe the planned flattened async E7 API; use the examples and current source as the authoritative runtime behavior until that migration is completed
 
 ### Available Operations
 
