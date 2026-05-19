@@ -74,8 +74,9 @@ class AsyncHTTPTransport:
     ) -> ClientResponse:
         """Execute HTTP request with circuit breaker.
 
-        The caller must fully consume or explicitly release the returned
-        response object to avoid leaking pooled connections.
+        The caller must either fully consume the body with `response.read()`
+        or explicitly release the response with `response.release()` to avoid
+        leaking pooled connections.
         """
         if not self._session:
             await self.initialize()

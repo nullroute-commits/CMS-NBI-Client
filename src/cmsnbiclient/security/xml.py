@@ -105,7 +105,7 @@ class SecureXMLHandler:
             return f"<{name}{attr_text}>{''.join(inner_parts)}</{name}>"
 
         if value is None:
-            return f"<{name} />"
+            return f"<{name}></{name}>"
         return f"<{name}>{escape(str(value))}</{name}>"
 
 

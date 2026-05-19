@@ -187,6 +187,8 @@ class Query:
 
         if response.status_code == 200:
             body: Dict[str, Any] = response.json()
+            # CMS deployments in this repository currently expose both `data`
+            # and `devices` response envelopes depending on the caller path.
             if "data" in body:
                 return body["data"]
             if "devices" in body:
