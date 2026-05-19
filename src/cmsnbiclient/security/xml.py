@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element
+from xml.sax.saxutils import escape, quoteattr
 
 import defusedxml.ElementTree as ET
 import structlog
@@ -78,35 +79,34 @@ class SecureXMLHandler:
             raise ValueError("XML data must contain exactly one root element")
 
         root_name, root_value = next(iter(data.items()))
-        root = Element(root_name)
-        self._dict_to_element(root, root_value)
-        return tostring(root, encoding="unicode")
+        return self._build_element(root_name, root_value)
 
-    def _dict_to_element(self, element: Element, value: Any) -> None:
-        """Recursively convert a dictionary value into XML elements."""
+    def _build_element(self, name: str, value: Any) -> str:
+        """Recursively build a safely escaped XML element string."""
         if isinstance(value, dict):
             attributes = value.get("@attributes", {})
-            for key, attr_value in attributes.items():
-                element.set(key, str(attr_value))
-
-            if "#text" in value and value["#text"] is not None:
-                element.text = str(value["#text"])
-
+            attr_text = "".join(
+                f" {key}={quoteattr(str(attr_value))}" for key, attr_value in attributes.items()
+            )
+            inner_parts = []
             for child_name, child_value in value.items():
                 if child_name in {"@attributes", "#text"}:
                     continue
 
                 if isinstance(child_value, list):
                     for item in child_value:
-                        child = SubElement(element, child_name)
-                        self._dict_to_element(child, item)
+                        inner_parts.append(self._build_element(child_name, item))
                 else:
-                    child = SubElement(element, child_name)
-                    self._dict_to_element(child, child_value)
-            return
+                    inner_parts.append(self._build_element(child_name, child_value))
 
-        if value is not None:
-            element.text = str(value)
+            if "#text" in value and value["#text"] is not None:
+                inner_parts.insert(0, escape(str(value["#text"])))
+
+            return f"<{name}{attr_text}>{''.join(inner_parts)}</{name}>"
+
+        if value is None:
+            return f"<{name} />"
+        return f"<{name}>{escape(str(value))}</{name}>"
 
 
 def parse_xml_safely(xml_string: str) -> Dict[str, Any]:

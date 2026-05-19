@@ -72,7 +72,11 @@ class AsyncHTTPTransport:
         headers: Optional[Dict[str, str]] = None,
         timeout: Optional[float] = None,
     ) -> ClientResponse:
-        """Execute HTTP request with circuit breaker"""
+        """Execute HTTP request with circuit breaker.
+
+        The caller must fully consume or explicitly release the returned
+        response object to avoid leaking pooled connections.
+        """
         if not self._session:
             await self.initialize()
 

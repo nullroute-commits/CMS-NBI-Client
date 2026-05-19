@@ -125,9 +125,18 @@ async def test_authenticate_raises_on_invalid_xml() -> None:
         await client._parse_auth_response(response)  # type: ignore[arg-type]
 
 
-def test_rest_query_uses_modern_client_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    ("protocol", "expected_url"),
+    [
+        ("http", "http://cms.internal:8443/restnbi/devices?deviceType=e7&limit=9999"),
+        ("https", "https://cms.internal:8443/restnbi/devices?deviceType=e7&limit=9999"),
+    ],
+)
+def test_rest_query_uses_modern_client_defaults(
+    monkeypatch: pytest.MonkeyPatch, protocol: str, expected_url: str
+) -> None:
     """REST queries should default to CMSClient configuration instead of legacy literals."""
-    client = CMSClient(make_config(host="cms.internal", rest_port=8443))
+    client = CMSClient(make_config(host="cms.internal", rest_port=8443, protocol=protocol))
 
     captured: Dict[str, Any] = {}
 
@@ -147,7 +156,7 @@ def test_rest_query_uses_modern_client_defaults(monkeypatch: pytest.MonkeyPatch)
     result = client.rest.query.device(device_type="e7", http_timeout=5)
 
     assert result == [{"id": "1"}]
-    assert captured["url"] == "http://cms.internal:8443/restnbi/devices?deviceType=e7&limit=9999"
+    assert captured["url"] == expected_url
     assert captured["auth"] == ("test-user", "test-pass")
     assert captured["timeout"] == 5
 

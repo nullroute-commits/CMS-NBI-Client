@@ -187,6 +187,10 @@ class Query:
 
         if response.status_code == 200:
             body: Dict[str, Any] = response.json()
-            return body.get("data") or body.get("devices") or body
+            if "data" in body:
+                return body["data"]
+            if "devices" in body:
+                return body["devices"]
+            return body
         else:
             return response

@@ -13,7 +13,7 @@ Modern Python client for Calix Management System (CMS) Northbound Interface (NBI
 ## Features
 
 - **Modern Async/Await**: Built on aiohttp for high-performance async operations
-- **HTTPS Support**: Modern transport supports TLS/SSL; legacy E7 coverage is still being completed
+- **HTTPS Support**: Modern transport supports TLS/SSL. Legacy E7 coverage is still being completed
 - **Connection Pooling**: Reuse connections for better performance
 - **Circuit Breaker**: Automatic failure detection and recovery
 - **Structured Logging**: Rich logs with structlog for better debugging

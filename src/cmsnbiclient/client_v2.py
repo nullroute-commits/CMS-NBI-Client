@@ -29,7 +29,7 @@ class _LegacyOperationGroup:
 
     def __getattr__(self, method_name: str) -> Callable[..., Any]:
         def caller(*args: Any, **kwargs: Any) -> Any:
-            network_name = kwargs.pop("network_name", kwargs.pop("network_nm", ""))
+            network_name = kwargs.pop("network_name", None) or kwargs.pop("network_nm", "")
             http_timeout = kwargs.pop("http_timeout", 1)
             operation = self._factory(
                 self._client, network_nm=network_name, http_timeout=http_timeout
@@ -198,10 +198,9 @@ class CMSClient(BaseClient):
     def _find_xml_text(root: Any, tag_name: str) -> Optional[str]:
         """Find an element value regardless of namespace prefix."""
         for element in root.iter():
-            element_tag = cast(str, element.tag)
-            element_text = cast(Optional[str], element.text)
-            if element_tag.split("}")[-1] == tag_name and element_text:
-                return element_text.strip()
+            if isinstance(element.tag, str) and element.tag.split("}")[-1] == tag_name:
+                if isinstance(element.text, str) and element.text:
+                    return element.text.strip()
         return None
 
     async def _parse_auth_response(self, response: aiohttp.ClientResponse) -> Dict[str, Any]:
