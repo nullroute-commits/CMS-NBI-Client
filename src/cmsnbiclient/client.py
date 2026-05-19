@@ -185,20 +185,16 @@ class Client:
                         </soapenv:Body>
                     </soapenv:Envelope>"""
 
-        if protocol == "http":
-            try:
-                response = requests.post(
-                    url=self.cms_netconf_url,
-                    headers=self.headers,
-                    data=payload,
-                    timeout=http_timeout,
-                )
-            except requests.exceptions.Timeout as e:
-                # future came and it decided to have raise
-                raise e
-        else:
-            # TODO:Need to implement https handling
-            pass
+        try:
+            response = requests.post(
+                url=self.cms_netconf_url,
+                headers=self.headers,
+                data=payload,
+                timeout=http_timeout,
+            )
+        except requests.exceptions.Timeout as e:
+            # future came and it decided to have raise
+            raise e
 
         if response.status_code != 200:
             # if the response code is not 200 FALSE and the request.post object is returned.
@@ -276,20 +272,16 @@ class Client:
                             </soapenv:Body>
                         </soapenv:Envelope>"""
 
-        if protocol == "http":
-            try:
-                response = requests.post(
-                    url=self.cms_netconf_url,
-                    headers=self.headers,
-                    data=payload,
-                    timeout=http_timeout,
-                )
-            except requests.exceptions.Timeout as e:
-                # debating between exit and raise will update in future
-                raise e
-        else:
-            # will need to research how to implement https connection with request library
-            pass
+        try:
+            response = requests.post(
+                url=self.cms_netconf_url,
+                headers=self.headers,
+                data=payload,
+                timeout=http_timeout,
+            )
+        except requests.exceptions.Timeout as e:
+            # debating between exit and raise will update in future
+            raise e
 
         if response.status_code != 200:
             # if the response code is not 200 response.models.Response is returned.

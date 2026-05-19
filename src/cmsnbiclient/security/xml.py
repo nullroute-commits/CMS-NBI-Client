@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
 from xml.etree.ElementTree import Element
+from xml.sax.saxutils import escape, quoteattr
 
 import defusedxml.ElementTree as ET
 import structlog
@@ -74,5 +75,43 @@ class SecureXMLHandler:
 
     def build(self, data: Dict[str, Any]) -> str:
         """Build XML from dictionary using templates"""
-        # Implementation using lxml builder for safety
-        raise NotImplementedError("XML building not yet implemented")
+        if len(data) != 1:
+            raise ValueError("XML data must contain exactly one root element")
+
+        root_name, root_value = next(iter(data.items()))
+        return self._build_element(root_name, root_value)
+
+    def _build_element(self, name: str, value: Any) -> str:
+        """Recursively build a safely escaped XML element string."""
+        if isinstance(value, dict):
+            attributes = value.get("@attributes", {})
+            attr_text = "".join(
+                f" {key}={quoteattr(str(attr_value))}" for key, attr_value in attributes.items()
+            )
+            inner_parts = []
+            for child_name, child_value in value.items():
+                if child_name in {"@attributes", "#text"}:
+                    continue
+
+                if isinstance(child_value, list):
+                    for item in child_value:
+                        inner_parts.append(self._build_element(child_name, item))
+                else:
+                    inner_parts.append(self._build_element(child_name, child_value))
+
+            if "#text" in value and value["#text"] is not None:
+                inner_parts.insert(0, escape(str(value["#text"])))
+
+            return f"<{name}{attr_text}>{''.join(inner_parts)}</{name}>"
+
+        if value is None:
+            return f"<{name}></{name}>"
+        return f"<{name}>{escape(str(value))}</{name}>"
+
+
+_DEFAULT_XML_HANDLER = SecureXMLHandler()
+
+
+def parse_xml_safely(xml_string: str) -> Dict[str, Any]:
+    """Parse XML with the repository's secure XML handler."""
+    return _DEFAULT_XML_HANDLER.parse(xml_string)

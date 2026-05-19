@@ -54,6 +54,3 @@ __all__ = [
     # Legacy API (deprecated)
     "LegacyClient",
 ]
-
-# Default logging setup
-setup_logging()

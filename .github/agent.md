@@ -1,6 +1,30 @@
 # CMS-NBI-Client Agent Configuration
 
-> **Note**: This file is maintained for reference. The active agent initialization file used by GitHub Copilot is located at `.github/agents/init.md`.
+> **Source of truth:** This file is the canonical agent definition for the repository. Any downstream Copilot or agent initialization files should be treated as derived views of this document.
+
+## Upstream Skill Provenance
+
+- Upstream source: `https://github.com/nullroute-commits/agency-agents`
+- Upstream reference reviewed during this integration: `783f6a72bfd7f3135700ac273c619d92821b419a`
+- Upstream adoption model: selective import by reference, not verbatim mirroring
+- Local override rule: repository-specific correctness, security, and runtime truth take precedence over generic upstream guidance
+
+## Adopted Upstream Skills
+
+This repository adopts the following `agency-agents` skill families as upstream guidance:
+
+- **Engineering:** backend architecture, code review, codebase onboarding, devops automation, technical writing, security engineering
+- **Testing:** API testing, reality checking, test-results analysis, workflow optimization
+- **Specialized coordination:** agents orchestration for multi-step execution planning
+
+When an agent works in this repository, it should prefer these upstream skill profiles where they improve quality, but it must still follow this repository's code, tests, and published runtime behavior.
+
+## Sync Policy
+
+- Review upstream `agency-agents` updates intentionally; do not auto-sync prompt content into this repository without review
+- Record the upstream commit or tag whenever this file is refreshed
+- Keep repository-specific sections current even if upstream skills change
+- If downstream agent bootstrap files drift from this file, update the downstream copies to match this source of truth
 
 This document provides comprehensive context and instructions for AI agents working on the CMS-NBI-Client repository. It includes project overview, architecture, conventions, and best practices.
 
