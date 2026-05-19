@@ -109,6 +109,9 @@ class SecureXMLHandler:
         return f"<{name}>{escape(str(value))}</{name}>"
 
 
+_DEFAULT_XML_HANDLER = SecureXMLHandler()
+
+
 def parse_xml_safely(xml_string: str) -> Dict[str, Any]:
     """Parse XML with the repository's secure XML handler."""
-    return SecureXMLHandler().parse(xml_string)
+    return _DEFAULT_XML_HANDLER.parse(xml_string)

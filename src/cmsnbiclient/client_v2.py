@@ -57,7 +57,7 @@ class LegacyE7Facade:
             ("update_", self.update),
         ):
             if name.startswith(prefix):
-                return cast(Callable[..., Any], getattr(group, name[len(prefix) :]))
+                return cast(Callable[..., Any], getattr(group, name[len(prefix):]))
         raise AttributeError(name)
 
 
