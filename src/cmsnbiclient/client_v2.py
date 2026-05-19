@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Optional, Type, cast
 
 import aiohttp
 import structlog
-from defusedxml import ElementTree as ET
+from defusedxml import ElementTree as DefusedET
 
 from .core.base import BaseClient
 from .core.config import Config
@@ -211,8 +211,8 @@ class CMSClient(BaseClient):
             response.release()
 
         try:
-            root = ET.fromstring(text)
-        except ET.ParseError as exc:
+            root = DefusedET.fromstring(text)
+        except DefusedET.ParseError as exc:
             raise AuthenticationError("Authentication failed: invalid XML response") from exc
 
         result_code = self._find_xml_text(root, "ResultCode")
